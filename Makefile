@@ -5,14 +5,14 @@ CXXFLAGS        := $(DEBUG_LEVEL) $(EXTRA_CCFLAGS)
 
 INC             := include
 SRC             := src
-ALL				:= MyCompress MyDecompress ForkCompress
+ALL				:= MyCompress MyDecompress ForkCompress MinShell MoreShell
 
 # $@ targt name
 # $< first prerequisite
 # $^ all prerequisites
 
 all: $(ALL)
-	rm *.o
+#	rm *.o
 
 MyCompress: MyCompress.o
 	$(CXX) -o $@ $^
@@ -30,6 +30,18 @@ ForkCompress: ForkCompress.o
 	$(CXX) -o $@ $^
 
 ForkCompress.o: $(SRC)/ForkCompress.cpp
+	$(CXX) $(CXXFLAGS) -c $<
+
+MinShell: MinShell.o
+	$(CXX) -o $@ $^
+
+MinShell.o: $(SRC)/MinShell.cpp
+	$(CXX) $(CXXFLAGS) -c $<
+
+MoreShell: MoreShell.o
+	$(CXX) -o $@ $^
+
+MoreShell.o: $(SRC)/MoreShell.cpp
 	$(CXX) $(CXXFLAGS) -c $<
 
 .PHONY: clean

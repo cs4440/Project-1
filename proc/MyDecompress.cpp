@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 
 void decompress(int fd_src, int fd_dest) {
     bool sign_flag = false;
-    int bytes = 0, buf_sz = 100, count = 0;
+    int buf_sz = 100, bytes = 0, count = 0;
     char cur = '\0';
     char *buf = new char[buf_sz + 1];  // +1 size for nul terminate
     std::string sign_count;

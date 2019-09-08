@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
 }
 
 void compress(int fd_src, int fd_dest) {
-    int bytes = 0, buf_sz = 100, count = 0, limit = 16;
+    int buf_sz = 100, bytes = 0, count = 0, limit = 16;
     char cur = '\0';
     char *buf = new char[buf_sz + 1];  // +1 size for nul terminate
 

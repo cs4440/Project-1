@@ -28,8 +28,7 @@ bool split_file(char* name, unsigned n, std::vector<std::string>& files);
 // @param fd_src - input file
 // @param fd_dest - output file
 // @param size - number of total_bytes to copy
-// return number of total_bytes bytes/written
-long int readwrite_n(int fd_src, int fd_dest, long int size);
+void readwrite_n(int fd_src, int fd_dest, long int size);
 
 int main(int argc, char* argv[]) {
     char default_src[] = "res/sample.txt", default_dest[] = "res/compress.txt";
@@ -119,12 +118,10 @@ bool split_file(char* name, unsigned n, std::vector<std::string>& files) {
     return status;
 }
 
-long int readwrite_n(int fd_src, int fd_dest, long int limit) {
+void readwrite_n(int fd_src, int fd_dest, long int limit) {
     char* buf = nullptr;
-    int total_bytes = limit;
-    long int buf_sz = 30, bytes = 0, total_read = 0;
-
-    std::cout << lseek(fd_src, 0, SEEK_CUR) << std::endl;
+    long int total_bytes = limit;
+    int buf_sz = 30, bytes = 0;
 
     // check for buffer size and bytes limit difference
     if(limit < buf_sz) buf_sz = limit;
@@ -140,6 +137,4 @@ long int readwrite_n(int fd_src, int fd_dest, long int limit) {
     }
 
     delete[] buf;
-
-    return total_read;
 }

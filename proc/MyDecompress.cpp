@@ -27,7 +27,7 @@ void expand_to_file(int fd, char c, int count);
 
 int main(int argc, char *argv[]) {
     int fd_src = open(argv[1], O_RDONLY);
-    int fd_dest = open(argv[2], O_RDWR | O_CREAT);
+    int fd_dest = open(argv[2], O_RDWR | O_CREAT | O_TRUNC);
 
     if(argc < 3) {
         std::cerr << "Insufficient arguments." << std::endl;
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 void decompress(int fd_src, int fd_dest) {
     bool sign_flag = false;
     int buf_sz = 100, bytes = 0, count = 0;
-    char cur = '\0';
+    char cur = '\0', carry_over = '\0';
     char *buf = new char[buf_sz + 1];  // +1 size for nul terminate
     std::string sign_count;
 
@@ -65,7 +65,14 @@ void decompress(int fd_src, int fd_dest) {
 
         for(int i = 0; i < bytes; ++i) {
             cur = buf[i];
-            ++count;
+
+            // check if previous block has any carry over characters
+            if(carry_over != '\0' && carry_over != cur) {
+                expand_to_file(fd_dest, carry_over, count);
+                carry_over = '\0';
+                count = 1;
+            } else
+                ++count;
 
             if(cur == '-' || cur == '+') {  // if currrent char is sign
                 sign_flag = !sign_flag;     // flag it, reset counter
@@ -90,6 +97,9 @@ void decompress(int fd_src, int fd_dest) {
                 expand_to_file(fd_dest, buf[i + 1], atoi(sign_count.c_str()));
                 count = 0;
             }
+
+            // set carry_over if last block has characters left
+            if(buf[i + 1] == '\0' && count > 0) carry_over = cur;
         }
     }
 

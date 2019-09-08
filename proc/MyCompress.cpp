@@ -9,8 +9,8 @@
  */
 #include <fcntl.h>   // constants, O_RDONLY, O_RDWR, etc
 #include <unistd.h>  // open(), read(), write()
-#include <cstring>   // strln()
-#include <iostream>
+#include <iostream>  // io
+#include <string>    // stream
 
 // compress file
 // @param fd_src - input file descriptor
@@ -53,8 +53,8 @@ int main(int argc, char *argv[]) {
 }
 
 void compress(int fd_src, int fd_dest) {
-    int buf_sz = 100, bytes = 0, count = 0, limit = 16;
-    char cur = '\0';
+    int buf_sz = 24, bytes = 0, count = 0, limit = 16;
+    char cur = '\0', carry_over = '\0';
     char *buf = new char[buf_sz + 1];  // +1 size for nul terminate
 
     while((bytes = read(fd_src, buf, buf_sz)) > 0) {
@@ -62,7 +62,14 @@ void compress(int fd_src, int fd_dest) {
 
         for(int i = 0; i < bytes; ++i) {
             cur = buf[i];
-            ++count;
+
+            // check if previous block has any carry over characters
+            if(carry_over != '\0' && carry_over != cur) {
+                compress_to_file(fd_dest, carry_over, count, limit);
+                carry_over = '\0';
+                count = 1;
+            } else
+                ++count;
 
             // if cur char is not same as next char and
             // next char is not NULL, write to file
@@ -71,6 +78,9 @@ void compress(int fd_src, int fd_dest) {
                 compress_to_file(fd_dest, buf[i], count, limit);
                 count = 0;
             }
+
+            // set carry_over if last block has characters left
+            if(buf[i + 1] == '\0' && count > 0) carry_over = cur;
         }
     }
 
@@ -82,7 +92,6 @@ void compress(int fd_src, int fd_dest) {
 
 void compress_to_file(int fd, char c, int count, int limit) {
     char *buf = NULL;
-    int len = 0;
     lseek(fd, 0, SEEK_END);  // seek to end of file
 
     if(count < limit) {
@@ -93,14 +102,9 @@ void compress_to_file(int fd, char c, int count, int limit) {
 
         delete[] buf;
     } else {
-        buf = new char[25];
         c = c == '0' ? '-' : '+';  // find compression syymbl
-
-        buf[0] = c;                     // add first symbol
-        sprintf(buf + 1, "%d", count);  // convert int to cstring on pos 1
-        buf[len = strlen(buf)] = c;     // add 2nd symbol at end
-        write(fd, buf, len + 1);
-
-        delete[] buf;
+        std::string str =
+            std::string(&c) + std::to_string(count) + std::string(&c);
+        write(fd, str.c_str(), str.size());
     }
 }

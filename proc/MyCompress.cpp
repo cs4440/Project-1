@@ -1,8 +1,11 @@
 /*
  * Compress binary file of 0's and 1's
- * Ex: If repeating 0 or 1 is less than 16, then simply write to file.
- *     Otherwise, if greater than or equal to 16, then write -num- for
- *     repeating 0's or +num+ for repeating 1's.
+ *
+ * DETAILS
+ * -------
+ * If repeating 0 or 1 is less than 16, then simply write to file.
+ * Otherwise, if greater than or equal to 16, then write -num- for
+ * repeating 0's or +num+ for repeating 1's.
  */
 #include <fcntl.h>   // constants, O_RDONLY, O_RDWR, etc
 #include <unistd.h>  // open(), read(), write()
@@ -13,13 +16,6 @@
 // @param fd_src - input file descriptor
 // @param fd_dest - output file descriptor
 void compress(int fd_src, int fd_dest);
-
-// read a block in file
-// @param fd - file descriptor
-// @param buf - read to buffer
-// @param sz - size of buffer
-// return number of bytes read
-int read_block(int fd, char *buf, int sz);
 
 // write compression to file by limit
 // @param fd - file descriptor
@@ -57,12 +53,14 @@ int main(int argc, char *argv[]) {
 }
 
 void compress(int fd_src, int fd_dest) {
-    int bytes_read = 0, buf_size = 100, count = 0, limit = 16;
+    int bytes = 0, buf_sz = 100, count = 0, limit = 16;
     char cur = '\0';
-    char *buf = new char[buf_size + 1];  // allocate buffer
+    char *buf = new char[buf_sz + 1];  // +1 size for nul terminate
 
-    while((bytes_read = read_block(fd_src, buf, buf_size)) > 0) {
-        for(int i = 0; i < bytes_read; ++i) {
+    while((bytes = read(fd_src, buf, buf_sz)) > 0) {
+        buf[bytes] = '\0';
+
+        for(int i = 0; i < bytes; ++i) {
             cur = buf[i];
             ++count;
 
@@ -80,15 +78,6 @@ void compress(int fd_src, int fd_dest) {
     if(count > 0) compress_to_file(fd_dest, cur, count, limit);
 
     delete[] buf;
-}
-
-int read_block(int fd, char *buf, int sz) {
-    int bytes_read = 0;
-
-    bytes_read = read(fd, buf, sz);
-    buf[bytes_read] = '\0';
-
-    return bytes_read;
 }
 
 void compress_to_file(int fd, char c, int count, int limit) {

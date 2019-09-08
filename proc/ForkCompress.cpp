@@ -1,5 +1,9 @@
 /*
  * Demonstration of fork() process with MyCompress program
+ *
+ * DEAILS
+ * ------
+ * Forks a process and passes arguments to exec call of MyCompress
  */
 #include <limits.h>    // PATH_MAX
 #include <sys/wait.h>  // wait()

@@ -1,5 +1,5 @@
 /*
- * Simple shell program that can only accept commands to call process
+ * Simple shell program that can only accept commands to call programs
  */
 #include <sys/types.h>  // pid_t
 #include <sys/wait.h>   // wait()

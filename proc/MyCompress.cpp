@@ -30,7 +30,7 @@ void compress_to_file(int fd, char c, int count, int limit);
 
 int main(int argc, char *argv[]) {
     int fd_src = open(argv[1], O_RDONLY);
-    int fd_dest = open(argv[2], O_RDWR | O_CREAT);
+    int fd_dest = open(argv[2], O_RDWR | O_CREAT | O_TRUNC);
 
     if(argc < 3) {
         std::cerr << "Insufficient arguments." << std::endl;

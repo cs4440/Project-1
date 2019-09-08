@@ -14,6 +14,7 @@ Realizing concurrency using Unix processes and threads
 
 - Simple binary compression program
 - Simple binary decompression program
-- Program to demonstrate fork() process with compression program
+- fork() demonstration program
 - Minimal shell that accepts commands to call processes
 - More featured shell that accepts commands and arguments to call processes
+- Concurrency program: split compression by n calls of MyCompress via fork()

@@ -14,13 +14,13 @@ void compress(FILE *src, FILE *dest);
 // @param dest - reference output file stream
 void decompress(FILE *src, FILE *dest);
 
-// compress n number of bits to end of file
+// write n number of bits to end of file
 // @param dest - output file stream to write
 // @param c - character to write
 // @param size - number of characers to write
 // @param limit - integer limit to switch to compression symbol; otherwise
 //                just write n number of bits to file
-void compress_to_file(FILE *dest, char c, int count, int limit);
+void write_compression(FILE *dest, char c, int count, int limit);
 
 void compress(FILE *src, FILE *dest) {
     int chr,         // character to get from src
@@ -34,15 +34,13 @@ void compress(FILE *src, FILE *dest) {
         ungetc(peek, src);  // return peek character
 
         if(chr != peek) {  // if peek char is diff from current, write
-            compress_to_file(dest, chr, count, limit);
+            write_compression(dest, chr, count, limit);
             count = 0;
         }
     }
 }
 
-void compress_to_file(FILE *dest, char c, int count, int limit) {
-    fseek(dest, 0, SEEK_END);  // seek to end of file
-
+void write_compression(FILE *dest, char c, int count, int limit) {
     if(count < limit) {
         std::string str(count, c);
         fputs(str.c_str(), dest);

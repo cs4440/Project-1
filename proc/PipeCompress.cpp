@@ -14,7 +14,7 @@
 
 int main(int argc, char *argv[]) {
     char default_src[] = "res/sample.txt",
-         default_dest[] = "res/forkcompress.txt";
+         default_dest[] = "res/pipecompress.txt";
     char *src = default_src, *dest = default_dest;
     int chr;
     int fd[2];

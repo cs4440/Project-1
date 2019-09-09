@@ -15,63 +15,44 @@ void decompress(FILE *src, FILE *dest);
 void expand_n_bits(FILE *dest, char c, int size);
 
 int main(int argc, char *argv[]) {
-    if(argc < 3)
-        std::cout << "Insufficient arguments" << std::endl;
+    char default_src[] = "res/compress.txt",
+         default_dest[] = "res/decompress.txt";
+    char *src = default_src, *dest = default_dest;
+
+    // check for argument overrides
+    if(argc > 1) src = argv[1];
+    if(argc > 2) dest = argv[2];
+
+    FILE *fsrc = fopen(src, "rb"),   // input file
+        *fdest = fopen(dest, "wb");  // output file
+
+    if(!fsrc || !fdest)
+        std::cerr << "fopen() failed" << std::endl;
     else {
-        std::cout << "Deompressing text: src(" << argv[1] << ") dest("
-                  << argv[2] << ")" << std::endl;
-
-        int fd_src = open(argv[1], O_RDONLY);
-        int fd_dest = open(argv[2], O_RDWR | O_CREAT | O_TRUNC);
-        FILE *src = fdopen(fd_src, "rb"),    // input file
-            *dest = fdopen(fd_dest, "w+b");  // output file
-
-        if(!src || !dest)
-            std::cerr << "fopen() failed" << std::endl;
-        else
-            decompress(src, dest);
-
-        std::cout << "Decompression complete." << std::endl;
-
-        fclose(src);
-        fclose(dest);
+        std::cout << "Decompressing text: src(" << src << ") dest(" << dest
+                  << ")" << std::endl;
+        decompress(fsrc, fdest);
+        std::cout << "Decompression complete" << std::endl;
     }
+
+    if(fsrc) fclose(fsrc);
+    if(fdest) fclose(fdest);
 
     return 0;
 }
 
 void decompress(FILE *src, FILE *dest) {
-    int chr,        // character to get from src
-        count = 0,  // count the number of same characters
-        peek;       // next character
+    int chr;  // character to get from src
     std::string sign;
 
     while((chr = fgetc(src)) != EOF) {
-        ++count;            // count number of characters read
-        peek = fgetc(src);  // peek at next char
-        ungetc(peek, src);  // return peek character
-
         if(chr == '-' || chr == '+') {
             sign.clear();
             while((chr = fgetc(src)) != '-' && chr != '+') sign += chr;
-            expand_n_bits(dest, chr, atoi(sign.c_str()));
 
-            count = 0;  // skip to next loop
-            continue;
-        } else if(chr != peek) {
-            expand_n_bits(dest, chr, count);
-            count = 0;
-        }
+            chr = chr == '-' ? '0' : '1';
+            fputs(std::string(atoi(sign.c_str()), chr).c_str(), dest);
+        } else
+            fputc(chr, dest);
     }
-}
-
-void expand_n_bits(FILE *dest, char c, int size) {
-    fseek(dest, 0, SEEK_END);  // seek write to end of file
-
-    if(c == '-')
-        c = '0';
-    else if(c == '+')
-        c = '1';
-
-    for(int i = 0; i < size; ++i) fputc(c, dest);
 }

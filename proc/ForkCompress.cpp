@@ -5,43 +5,45 @@
  * ------
  * Forks a process and passes arguments to exec call of MyCompress
  */
-#include <limits.h>    // PATH_MAX
-#include <sys/wait.h>  // wait()
-#include <unistd.h>    // fork(), execl()
+#include <limits.h>     // PATH_MAX
+#include <sys/types.h>  // pid_t
+#include <sys/wait.h>   // wait()
+#include <unistd.h>     // fork(), execl()
 #include <iostream>
 #include <string>
 
 int main(int argc, char *argv[]) {
-    if(argc < 3) {
-        std::cerr << "Insufficient arguments." << std::endl;
-        return 1;
-    }
+    char default_src[] = "res/sample.txt",
+         default_dest[] = "res/forkcompress.txt";
+    char *src = default_src, *dest = default_dest;
 
-    int pid = fork();  // fork process and return int state
+    // check for argument overrides
+    if(argc > 1) src = argv[1];
+    if(argc > 2) dest = argv[2];
+
+    pid_t pid = fork();  // fork process and return int state
 
     if(pid < 0) {
-        std::cerr << "fork() process failed." << std::endl;
+        std::cerr << "fork() failed" << std::endl;
         return 1;
-    }
-
-    if(pid == 0) {
-        std::cout << "I am child (pid: " << getpid() << ")." << std::endl;
-        std::cout << "Calling for compress program." << std::endl;
+    } else if(pid == 0) {
+        std::cout << "I am child (pid: " << getpid() << ")" << std::endl;
+        std::cout << "Calling MyCompress program" << std::endl;
 
         // get current path
         char cwd[PATH_MAX];
         if(getcwd(cwd, PATH_MAX) == NULL)
-            std::cerr << "getcwd() failed." << std::endl;
+            std::cerr << "getcwd() failed" << std::endl;
 
         // create absolute path for program
         std::string full_path(cwd);
         full_path += "/MyCompress";
 
         // call exec to spawn MyCompress
-        int rt =
-            execl(full_path.c_str(), full_path.c_str(), argv[1], argv[2], NULL);
+        execl(full_path.c_str(), full_path.c_str(), src, dest, NULL);
 
-        if(rt < 0) std::cerr << "execl() failed" << std::endl;
+        std::cerr << "exec() failed" << std::endl;
+        return 1;
     } else {
         int pid_wait = wait(NULL);  // waiting for child to complete
         std::cout << "I am parent (pid: " << getpid()

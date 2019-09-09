@@ -39,9 +39,11 @@ void merge(std::vector<std::string>& files, char* output);
 void compress_to_file(FILE* dest, char c, int count, int limit);
 
 int main(int argc, char* argv[]) {
-    char default_src[] = "res/sample.txt", default_dest[] = "res/output.txt";
+    char default_src[] = "res/sample.txt",
+         default_dest[] = "res/parcompress.txt";
     char *src = default_src, *dest = default_dest;
     unsigned n = 3;
+    pid_t pid = -1;
     struct stat buffer;
     std::vector<std::string> split_files, compressed_files;
 
@@ -64,23 +66,25 @@ int main(int argc, char* argv[]) {
 
     split_file(src, n, split_files);
 
-    std::cout << "Starting concurrency compression of " << n << "."
-              << std::endl;
+    std::cout << "Starting concurrency compression of " << n << std::endl;
 
     for(unsigned i = 0; i < n; ++i)
-        if(fork() == 0) {
+        if((pid = fork()) == 0) {
             execle("MyCompress", "MyCompress", split_files[i].c_str(),
                    compressed_files[i].c_str(), nullptr);
 
             // exec fails here
-            std::cout << "Exec error." << std::endl;
+            std::cerr << "exec() failed" << std::endl;
+            return 1;
+        } else if(pid < 0) {
+            std::cerr << "fork() failed" << std::endl;
             return 1;
         }
     for(unsigned i = 0; i < n; ++i) wait(nullptr);
 
     merge(compressed_files, dest);
 
-    std::cout << "Concurrency compression complete." << std::endl;
+    std::cout << "Concurrency compression complete" << std::endl;
 
     return 0;
 }

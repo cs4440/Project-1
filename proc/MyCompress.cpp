@@ -18,24 +18,27 @@ void compress(FILE *src, FILE *dest);
 void compress_to_file(FILE *dest, char c, int count, int limit);
 
 int main(int argc, char *argv[]) {
-    if(argc < 3)
-        std::cout << "Insufficient arguments" << std::endl;
+    char default_src[] = "res/sample.txt", default_dest[] = "res/compress.txt";
+    char *src = default_src, *dest = default_dest;
+
+    // check for argument overrides
+    if(argc > 1) src = argv[1];
+    if(argc > 2) dest = argv[2];
+
+    FILE *fsrc = fopen(src, "rb"),   // input file
+        *fdest = fopen(dest, "wb");  // output file
+
+    if(!fsrc || !fdest)
+        std::cerr << "fopen() failed" << std::endl;
     else {
-        int fd_src = open(argv[1], O_RDONLY);
-        int fd_dest = open(argv[2], O_RDWR | O_CREAT | O_TRUNC);
-        FILE *src = fdopen(fd_src, "rb"),    // input file
-            *dest = fdopen(fd_dest, "w+b");  // output file
-
-        if(!src || !dest)
-            std::cerr << "fopen() failed" << std::endl;
-        else
-            compress(src, dest);
-
-        std::cout << "Compression complete." << std::endl;
-
-        fclose(src);
-        fclose(dest);
+        std::cout << "Compressing text: src(" << src << ") dest(" << dest << ")"
+                  << std::endl;
+        compress(fsrc, fdest);
+        std::cout << "Compression complete" << std::endl;
     }
+
+    if(fsrc) fclose(fsrc);
+    if(fdest) fclose(fdest);
 
     return 0;
 }
@@ -65,15 +68,13 @@ void compress_to_file(FILE *dest, char c, int count, int limit) {
         std::string str(count, c);
         fputs(str.c_str(), dest);
     } else {
-        std::string str;
-
         if(c == '0')
             c = '-';
         else if(c == '1')
             c = '+';
 
-        str = std::string(&c) + std::to_string(count) + std::string(&c);
-
+        std::string str(std::string(&c) + std::to_string(count) +
+                        std::string(&c));
         fputs(str.c_str(), dest);
     }
 }

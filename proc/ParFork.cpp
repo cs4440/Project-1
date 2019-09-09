@@ -6,42 +6,49 @@
  * Splits file by n times. Calls MyCompress to work on each split file
  * via fork(). Then merge all the compression results to final output.
  */
-#include <fcntl.h>      // constants, O_RDONLY, O_RDWR, etc
 #include <sys/stat.h>   // stat(), mkdir()
 #include <sys/types.h>  // pid_t
 #include <sys/wait.h>   // wait()
-#include <unistd.h>     // open(), bytes(), write(), lseek(), fork(), exec(),
+#include <unistd.h>     // exec()
+#include <unistd.h>     // fork()
 #include <cassert>      // asser()
+#include <cstdio>       // fopen()
 #include <cstdlib>      // atoi()
 #include <iostream>     // stream
 #include <vector>       // vector
 
 // splits a file by n times to files
 // precondition: files must have n output file names
-// @param name - input file
+// @param input - input file name
 // @param n - split by n times
 // @param files - list of output file names
 // return success state
-bool split_file(char* name, unsigned n, std::vector<std::string>& files);
+bool split_file(char* input, unsigned n, std::vector<std::string>& files);
 
-// copy fd_src file to fd_dest file by n total_bytes size
-// @param fd_src - input file
-// @param fd_dest - output file
-// @param size - number of total_bytes to copy
-void readwrite_n(int fd_src, int fd_dest, long int size);
+// merges files and fixes beginning/end of each files
+// @param files - a vector of n input file names
+// @param output - output file name
+void merge(std::vector<std::string>& files, char* output);
+
+// compress n number of bits to end of file
+// @param dest - output file stream to write
+// @param c - character to write
+// @param size - number of characers to write
+// @param limit - integer limit to switch to compression symbol; otherwise
+//                just write n number of bits to file
+void compress_to_file(FILE* dest, char c, int count, int limit);
 
 int main(int argc, char* argv[]) {
-    char default_src[] = "res/sample.txt", default_dest[] = "res/compress.txt";
-    char *fd_src = default_src, *fd_dest = default_dest;
-    unsigned n = 3;                        // number of n splits
-    struct stat buffer;                    // check for path info
-    std::vector<std::string> split_files,  // names for splitting files
-        compressed_files;                  // names for split compression files
+    char default_src[] = "res/sample.txt", default_dest[] = "res/output.txt";
+    char *src = default_src, *dest = default_dest;
+    unsigned n = 3;
+    struct stat buffer;
+    std::vector<std::string> split_files, compressed_files;
 
     // check for argument overrides
-    if(argc > 2) fd_src = argv[1];
-    if(argc > 3) fd_dest = argv[2];
-    if(argc > 4) n = atoi(argv[3]);
+    if(argc > 1) src = argv[1];
+    if(argc > 2) dest = argv[2];
+    if(argc > 3) n = atoi(argv[3]);
 
     // check if directory tmp/ exists
     // stat() returns 0 if exists
@@ -55,7 +62,7 @@ int main(int argc, char* argv[]) {
     for(const auto& file : split_files)
         compressed_files.emplace_back(file + std::string(".cmp"));
 
-    split_file(fd_src, n, split_files);
+    split_file(src, n, split_files);
 
     std::cout << "Starting concurrency compression of " << n << "."
               << std::endl;
@@ -71,70 +78,153 @@ int main(int argc, char* argv[]) {
         }
     for(unsigned i = 0; i < n; ++i) wait(nullptr);
 
-    std::cout << "Concurrency compression complete." << std::endl;
+    merge(compressed_files, dest);
 
-    // TODO
-    // change MyCompress to merge all files
-    // MyCompress need to also scan compression symbols to merge
-    // between last -15- on first file and -21- first on second file
+    std::cout << "Concurrency compression complete." << std::endl;
 
     return 0;
 }
 
-bool split_file(char* name, unsigned n, std::vector<std::string>& files) {
+bool split_file(char* input, unsigned n, std::vector<std::string>& files) {
     bool status = true;
+    int chr;
     long int file_size = 0, split_size = 0;
-    int fd_src = -1;
+    FILE* src = nullptr;
 
     // check files have n output files names
     assert(n == files.size());
 
-    fd_src = open(name, O_RDONLY);
+    src = fopen(input, "rb");
 
-    if(fd_src < 0) {
-        std::cerr << "open() files failed." << std::endl;
-        status = false;
-    } else {
+    if(src) {
         // calculate total file size and split size
-        file_size = lseek(fd_src, 0, SEEK_END);
+        fseek(src, 0, SEEK_END);
+        file_size = ftell(src);
         split_size = file_size / n;
-        lseek(fd_src, 0, SEEK_SET);
+        fseek(src, 0, SEEK_SET);
 
         if(file_size)
             for(unsigned i = 0; i < n; ++i) {
                 // on last file, recalc split size from integer division loss
-                if(i == n - 1)
-                    split_size = file_size - lseek(fd_src, 0, SEEK_CUR);
+                if(i == n - 1) {
+                    int tell = ftell(src);
+                    split_size = file_size - tell;
+                    fseek(src, tell, SEEK_SET);
+                }
 
-                int tmp = open(files[i].c_str(), O_RDWR | O_CREAT | O_TRUNC);
-                readwrite_n(fd_src, tmp, split_size);
-                close(tmp);
+                FILE* tmp = fopen(files[i].c_str(), "w+b");
+                for(long int i = 0; i < split_size; ++i)
+                    if((chr = fgetc(src)) != EOF) fputc(chr, tmp);
+                fclose(tmp);
             }
         else
             status = false;
+
+    } else {
+        std::cout << "File open failed" << std::endl;
+        status = false;
     }
-    close(fd_src);
+    fclose(src);
 
     return status;
 }
 
-void readwrite_n(int fd_src, int fd_dest, long int limit) {
-    char* buf = nullptr;
-    long int total_bytes = limit;
-    int buf_sz = 30, bytes = 0;
+void merge(std::vector<std::string>& files, char* output) {
+    bool sign_flag = false, append = false;
+    int chr = -1,        // character to get from src
+        count = 0,       // count the number of same characters
+        limit = 16,      // limit for compression
+        peek = -1,       // next character
+        prev = -1,       // previous character
+        prev_count = 0,  // previous count
+        n = 0;           // number from sign compression
+    FILE *dest = fopen(output, "wb"), *src = nullptr, *src_peek = nullptr;
+    std::string sign;
 
-    // check for buffer size and bytes limit difference
-    if(limit < buf_sz) buf_sz = limit;
+    for(std::size_t i = 0; i < files.size(); ++i) {
+        src = fopen(files[i].c_str(), "rb");
 
-    buf = new char[buf_sz + 1];
+        while((chr = fgetc(src)) != EOF) {
+            ++count;
+            peek = fgetc(src);  // peek at next char
+            ungetc(peek, src);  // return peek character
 
-    while(total_bytes > 0 && (bytes = read(fd_src, buf, buf_sz)) > 0) {
-        buf[bytes] = '\0';
-        write(fd_dest, buf, bytes);
+            if(chr == '-' || chr == '+') {
+                prev = chr == '-' ? '0' : '1';
+                sign_flag = true;
 
-        total_bytes -= bytes;
-        if(total_bytes < buf_sz) buf_sz = total_bytes;
+                // get symbol string
+                sign.clear();
+                while((chr = fgetc(src)) != '-' && chr != '+') sign += chr;
+                n = atoi(sign.c_str());
+
+                // if prev block has append, then add count to sign string
+                if(append) {
+                    sign = std::string(std::to_string(n + count - 1));
+                    append = false;
+                }
+
+                sign = std::string(1, (char)chr) + sign +
+                       std::string(1, (char)chr);
+                fwrite(sign.c_str(), 1, sign.size(), dest);
+
+                count = 0;
+            } else if(chr != peek) {
+                sign_flag = false;
+                compress_to_file(dest, chr, count, limit);
+
+                if(peek == EOF) {
+                    prev = chr;
+                    prev_count = count;
+                }
+                count = 0;
+            }
+        }
+        // peek at next file's char and see if same as prev
+        if(i != files.size() - 1) {
+            src_peek = fopen(files[i + 1].c_str(), "rb");
+            peek = fgetc(src_peek);
+
+            // determine corresponding bytes from symbol
+            if(peek == '-') peek = '0';
+            if(peek == '+') peek = '1';
+
+            // if peek is same as prev then,
+            // determine new count, dest fseek backwards, and truncate
+            if(prev == peek) {
+                append = true;
+
+                if(sign_flag) {
+                    count = n;
+                    fseek(dest, -sign.size(), SEEK_END);
+                } else {
+                    count = prev_count;
+                    fseek(dest, -count, SEEK_END);
+                }
+                ftruncate(fileno(dest), ftell(dest));
+            }
+            fclose(src_peek);
+        }
     }
+    fclose(dest);
+}
 
-    delete[] buf;
+void compress_to_file(FILE* dest, char c, int count, int limit) {
+    fseek(dest, 0, SEEK_END);  // seek to end of file
+
+    if(count < limit) {
+        std::string str(count, c);
+        fputs(str.c_str(), dest);
+    } else {
+        std::string str;
+
+        if(c == '0')
+            c = '-';
+        else if(c == '1')
+            c = '+';
+
+        str = std::string(&c) + std::to_string(count) + std::string(&c);
+
+        fputs(str.c_str(), dest);
+    }
 }

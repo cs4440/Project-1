@@ -1,7 +1,5 @@
 #include "../include/token.h"
 
-namespace tok {
-
 /*******************************************************************************
  * DESCRIPTION:
  *  Returns an integer corresponding to the string type, such as the
@@ -254,5 +252,3 @@ Token& operator+(Token& lhs, const Token& rhs) {
     lhs._token += rhs._token;
     return lhs;
 }
-
-}  // namespace tok

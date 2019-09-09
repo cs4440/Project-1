@@ -1,9 +1,7 @@
 #include "../include/tokenizer.h"  // sql_tokenizer declarations
 
-namespace tok {
-
 // STATIC VARIABLES
-int Tokenizer::_table[state_machine::MAX_ROWS][state_machine::MAX_COLUMNS];
+int Tokenizer::_table[state_machine::MAX_ROWS][state_machine::MAX_COLS];
 bool Tokenizer::_need_init = true;
 
 /*******************************************************************************
@@ -210,7 +208,7 @@ void Tokenizer::set_string(const char str[]) {
  *  Initialize all values in table to -1.
  *
  * PRE-CONDITIONS:
- *  int _table[][state_machine::MAX_COLUMNS]: integer array
+ *  int _table[][state_machine::MAX_COLS]: integer array
  *
  * POST-CONDITIONS:
  *  all cells in table initialized to -1
@@ -218,7 +216,7 @@ void Tokenizer::set_string(const char str[]) {
  * RETURN:
  *  none
  ******************************************************************************/
-void Tokenizer::make_table(int _table[][state_machine::MAX_COLUMNS]) {
+void Tokenizer::make_table(int _table[][state_machine::MAX_COLS]) {
     using namespace state_machine;
 
     init_table(_table);  // initialize table with -1
@@ -322,5 +320,3 @@ Tokenizer& operator>>(Tokenizer& s, Token& t) {
 
     return s;
 }
-
-}  // namespace tok

@@ -1,67 +1,58 @@
-#include <limits.h>
-#include <sys/wait.h>
-#include <unistd.h>
-#include <fstream>
-#include <iostream>
+/*
+ * Demonstration of pipe() between forked processes of parent and child
+ *
+ * DETAILS
+ * ------
+ * Forks a process where parent reads a source file. Using pipe(), parent will
+ * send the source file to child to perform compression.
+ */
+#include <stdio.h>                   // fopen()
+#include <sys/types.h>               // pid_t
+#include <unistd.h>                  // fork(), pipe()
+#include <iostream>                  // stream
+#include "../include/compression.h"  // compress()
 
 int main(int argc, char *argv[]) {
-    int fd[2], rt, pid;
+    char default_src[] = "res/sample.txt",
+         default_dest[] = "res/forkcompress.txt";
+    char *src = default_src, *dest = default_dest;
+    int chr;
+    int fd[2];
+    pid_t pid;
 
-    if(argc < 3) {
-        std::cout << "Insufficient arguments" << std::endl;
+    // check for argument overrides
+    if(argc > 1) src = argv[1];
+    if(argc > 2) dest = argv[2];
+
+    if(pipe(fd) != 0) {
+        std::cerr << "pipe() failed" << std::endl;
+        return 1;
+    }
+
+    pid = fork();  // fork process and return int state
+
+    if(pid < 0) {
+        std::cerr << "fork() failed" << std::endl;
+        return 1;
+    } else if(pid == 0) {
+        close(fd[1]);                          // close pipe write
+        FILE *pipe_read = fdopen(fd[0], "r"),  // open pipe read
+            *fdest = fopen(dest, "wb");        // open destination file
+
+        compress(pipe_read, fdest);
+
+        fclose(pipe_read);
+        fclose(fdest);
     } else {
-        rt = pipe(fd);
-        pid = fork();
+        close(fd[0]);                           // close pipe read
+        FILE *pipe_write = fdopen(fd[1], "w"),  // open pipe write
+            *fsrc = fopen(src, "rb");           // open source file
 
-        std::cout << "fd[0]: " << fd[0] << ", fd[1]: " << fd[1] << std::endl;
+        // read from source file and write to pipe
+        while((chr = fgetc(fsrc)) != EOF) fputc(chr, pipe_write);
 
-        if(rt < 0 || pid < 0)
-            std::cerr << "pipe() or fork() failed." << std::endl;
-        else if(pid == 0) {
-            int buf_size = 5;
-            char *buf = new char[buf_size];
-
-            std::cout << "Reading from file" << std::endl;
-            close(fd[0]);  // close file descriptor read
-
-            // open first argument as file input
-            std::fstream fin(argv[1], std::ios::in | std::ios::binary);
-
-            // read input file and write to fd[1]
-            fin.read(buf, buf_size - 1);
-            buf[fin.gcount()] = '\0';
-            write(fd[1], buf, fin.gcount());
-
-            while(fin.gcount()) {
-                fin.read(buf, buf_size - 1);
-                buf[fin.gcount()] = '\0';
-                write(fd[1], buf, fin.gcount());
-            }
-
-            delete[] buf;
-        } else {
-            int pid_wait = wait(NULL);
-            std::cout << "Writing to file" << std::endl;
-            close(fd[1]);  // close file ddscriptor write
-
-            std::fstream fout(argv[2], std::ios::in | std::ios::out |
-                                           std::ios::binary | std::ios::trunc);
-
-            // get current path
-            char cwd[PATH_MAX];
-            if(getcwd(cwd, PATH_MAX) == NULL)
-                std::cerr << "getcwd() failed." << std::endl;
-
-            // acreate absolute path for program
-            std::string full_path(cwd);
-            full_path += "/read";
-
-            // call exec to spawn MyCompress
-            int ret = execl(full_path.c_str(), full_path.c_str(), &fd[0],
-                            argv[2], NULL);
-
-            if(ret < 0) std::cout << "exec error" << std::endl;
-        }
+        fclose(pipe_write);
+        fclose(fsrc);
     }
 
     return 0;

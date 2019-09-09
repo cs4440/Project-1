@@ -7,7 +7,7 @@ namespace state_machine {
  *  Initialize the entire table with -1.
  *
  * PRE-CONDITIONS:
- *  int _table[][MAX_COLUMNS]: an integer array
+ *  int _table[][MAX_COLS]: an integer array
  *
  * POST-CONDITIONS:
  *  All cells' value are -1.
@@ -15,9 +15,9 @@ namespace state_machine {
  * RETURN:
  *  none
  ******************************************************************************/
-void init_table(int _table[][MAX_COLUMNS]) {
+void init_table(int _table[][MAX_COLS]) {
     for(int row = 0; row < MAX_ROWS; ++row)
-        for(int col = 0; col < MAX_COLUMNS; ++col) _table[row][col] = -1;
+        for(int col = 0; col < MAX_COLS; ++col) _table[row][col] = -1;
 }
 
 /*******************************************************************************
@@ -25,7 +25,7 @@ void init_table(int _table[][MAX_COLUMNS]) {
  *  Mark the cell in row 'state' at column 0 with 1 (as true)
  *
  * PRE-CONDITIONS:
- *  int _table[][MAX_COLUMNS]: integer array
+ *  int _table[][MAX_COLS]: integer array
  *  int state                : 0 to MAX_ROWS - 1
  *
  * POST-CONDITIONS:
@@ -34,7 +34,7 @@ void init_table(int _table[][MAX_COLUMNS]) {
  * RETURN:
  *  none
  ******************************************************************************/
-void mark_success(int _table[][MAX_COLUMNS], int state) {
+void mark_success(int _table[][MAX_COLS], int state) {
     assert(state < MAX_ROWS);
     _table[state][0] = 1;
 }
@@ -44,7 +44,7 @@ void mark_success(int _table[][MAX_COLUMNS], int state) {
  *  Mark the cell in row 'state' at column 0 with 0 (as false)
  *
  * PRE-CONDITIONS:
- *  int _table[][MAX_COLUMNS]: integer array
+ *  int _table[][MAX_COLS]: integer array
  *  int state                : 0 to MAX_ROWS - 1
  *
  * POST-CONDITIONS:
@@ -53,7 +53,7 @@ void mark_success(int _table[][MAX_COLUMNS], int state) {
  * RETURN:
  *  none
  ******************************************************************************/
-void mark_fail(int _table[][MAX_COLUMNS], int state) {
+void mark_fail(int _table[][MAX_COLS], int state) {
     assert(state < MAX_ROWS);
     _table[state][0] = 0;
 }
@@ -63,8 +63,8 @@ void mark_fail(int _table[][MAX_COLUMNS], int state) {
  *  Return a boolean value of cell in row 'state' and column 0.
  *
  * PRE-CONDITIONS:
- *  int _table[][MAX_COLUMNS]: integer array
- *  int state                : 0 to MAX_ROWS - 1
+ *  int _table[][MAX_COLS]: integer array
+ *  int state             : 0 to MAX_ROWS - 1
  *
  * POST-CONDITIONS:
  *  none
@@ -72,7 +72,7 @@ void mark_fail(int _table[][MAX_COLUMNS], int state) {
  * RETURN:
  *  boolean
  ******************************************************************************/
-bool is_success(const int _table[][MAX_COLUMNS], int state) {
+bool is_success(const int _table[][MAX_COLS], int state) {
     return _table[state][0];
 }
 
@@ -81,11 +81,11 @@ bool is_success(const int _table[][MAX_COLUMNS], int state) {
  *  Mark the table's cell in a row with column range with value of 'state'.
  *
  * PRE-CONDITIONS:
- *  int row                  : 0 to MAX_ROWS - 1
- *  int _table[][MAX_COLUMNS]: integer array
- *  int from                 : 0 to MAX_COLUMNS - 1
- *  int to                   : 0 to MAX_COLUMNS - 1
- *  int state                : 0 to MAX_ROWS - 1
+ *  int row               : 0 to MAX_ROWS - 1
+ *  int _table[][MAX_COLS]: integer array
+ *  int from              : 0 to MAX_COLS - 1
+ *  int to                : 0 to MAX_COLS - 1
+ *  int state             : 0 to MAX_ROWS - 1
  *
  * POST-CONDITIONS:
  *  Cells are marked with state
@@ -93,8 +93,7 @@ bool is_success(const int _table[][MAX_COLUMNS], int state) {
  * RETURN:
  *  none
  ******************************************************************************/
-void mark_cells(int row, int _table[][MAX_COLUMNS], int from, int to,
-                int state) {
+void mark_cells(int row, int _table[][MAX_COLS], int from, int to, int state) {
     for(int col = from; col <= to; ++col) _table[row][col] = state;
 }
 
@@ -103,10 +102,10 @@ void mark_cells(int row, int _table[][MAX_COLUMNS], int from, int to,
  *  Mark the table's cell in a row with char array with value of 'state'.
  *
  * PRE-CONDITIONS:
- *  int row                  : 0 to MAX_ROWS - 1
- *  int _table[][MAX_COLUMNS]: integer array
- *  const char columns[]     : 0 to MAX_COLUMNS - 1
- *  int state                : 0 to MAX_ROWS - 1
+ *  int row               : 0 to MAX_ROWS - 1
+ *  int _table[][MAX_COLS]: integer array
+ *  const char columns[]  : 0 to MAX_COLS - 1
+ *  int state             : 0 to MAX_ROWS - 1
  *
  * POST-CONDITIONS:
  *  Cells are marked with state
@@ -114,7 +113,7 @@ void mark_cells(int row, int _table[][MAX_COLUMNS], int from, int to,
  * RETURN:
  *  none
  ******************************************************************************/
-void mark_cells(int row, int _table[][MAX_COLUMNS], const char columns[],
+void mark_cells(int row, int _table[][MAX_COLS], const char columns[],
                 int state) {
     for(int i = 0; columns[i] != '\0'; ++i)
         _table[row][(int)columns[i]] = state;
@@ -125,10 +124,10 @@ void mark_cells(int row, int _table[][MAX_COLUMNS], const char columns[],
  *  Mark the table's cell in a row and column with value of 'state'.
  *
  * PRE-CONDITIONS:
- *  int row                  : 0 to MAX_ROWS - 1
- *  int _table[][MAX_COLUMNS]: integer array
- *  int column               : 0 to MAX_COLUMNS - 1
- *  int state                : 0 to MAX_ROWS - 1
+ *  int row               : 0 to MAX_ROWS - 1
+ *  int _table[][MAX_COLS]: integer array
+ *  int column            : 0 to MAX_COLS - 1
+ *  int state             : 0 to MAX_ROWS - 1
  *
  * POST-CONDITIONS:
  *  Cell is marked with state
@@ -136,7 +135,7 @@ void mark_cells(int row, int _table[][MAX_COLUMNS], const char columns[],
  * RETURN:
  *  none
  ******************************************************************************/
-void mark_cell(int row, int _table[][MAX_COLUMNS], int column, int state) {
+void mark_cell(int row, int _table[][MAX_COLS], int column, int state) {
     _table[row][column] = state;
 }
 
@@ -155,9 +154,9 @@ void mark_cell(int row, int _table[][MAX_COLUMNS], int column, int state) {
  *  state [+1] --- VALUES --> [+1] ---> loop at state +1 for VALUES
  *
  * PRE-CONDITIONS:
- *  ROWS REQUIRE: 2
- *  int _table[][MAX_COLUMNS]: integer array
- *  int state                : 0 to MAX_ROWS - 1
+ *  ROWS REQUIRE          : 2
+ *  int _table[][MAX_COLS]: integer array
+ *  int state             : 0 to MAX_ROWS - 1
  *
  * POST-CONDITIONS:
  *  Cells are marked with state
@@ -165,7 +164,7 @@ void mark_cell(int row, int _table[][MAX_COLUMNS], int column, int state) {
  * RETURN:
  *  none
  ******************************************************************************/
-void mark_table_generic(int _table[][MAX_COLUMNS], int state,
+void mark_table_generic(int _table[][MAX_COLS], int state,
                         const char columns[]) {
     // MARK SUCCESS/FAILURE
     // state [+0] ---> fail
@@ -194,9 +193,9 @@ void mark_table_generic(int _table[][MAX_COLUMNS], int state,
  *  state [+1] --- VALUES --> [-1]
  *
  * PRE-CONDITIONS:
- *  ROWS REQUIRE: 2
- *  int _table[][MAX_COLUMNS]: integer array
- *  int state                : 0 to MAX_ROWS - 1
+ *  ROWS REQUIRE          : 2
+ *  int _table[][MAX_COLS]: integer array
+ *  int state             : 0 to MAX_ROWS - 1
  *
  * POST-CONDITIONS:
  *  Cells are marked with state
@@ -204,7 +203,7 @@ void mark_table_generic(int _table[][MAX_COLUMNS], int state,
  * RETURN:
  *  none
  ******************************************************************************/
-void unmark_table_generic(int _table[][MAX_COLUMNS], int state,
+void unmark_table_generic(int _table[][MAX_COLS], int state,
                           const char columns[]) {
     // MARK CELLS
     // state [+0] --- VALUES --> [+1]
@@ -219,9 +218,9 @@ void unmark_table_generic(int _table[][MAX_COLUMNS], int state,
  *  for searching for one character tokens, ie "." or "*".
  *
  * PRE-CONDITIONS:
- *  ROWS REQUIRE: 2
- *  int _table[][MAX_COLUMNS]: integer array
- *  int state                : 0 to MAX_ROWS - 1
+ *  ROWS REQUIRE          : 2
+ *  int _table[][MAX_COLS]: integer array
+ *  int state             : 0 to MAX_ROWS - 1
  *
  * POST-CONDITIONS:
  *  Cells are marked with state
@@ -229,7 +228,7 @@ void unmark_table_generic(int _table[][MAX_COLUMNS], int state,
  * RETURN:
  *  none
  ******************************************************************************/
-void mark_table_single_char(int _table[][MAX_COLUMNS], int state,
+void mark_table_single_char(int _table[][MAX_COLS], int state,
                             const char character) {
     // MARK SUCCESS/FAILURE
     mark_fail(_table, state + 0);
@@ -246,9 +245,9 @@ void mark_table_single_char(int _table[][MAX_COLUMNS], int state,
  *  for searching for one character tokens, ie "." or "*".
  *
  * PRE-CONDITIONS:
- *  ROWS REQUIRE: 2
- *  int _table[][MAX_COLUMNS]: integer array
- *  int state                : 0 to MAX_ROWS - 1
+ *  ROWS REQUIRE          : 2
+ *  int _table[][MAX_COLS]: integer array
+ *  int state             : 0 to MAX_ROWS - 1
  *
  * POST-CONDITIONS:
  *  Cells are marked with state
@@ -256,7 +255,7 @@ void mark_table_single_char(int _table[][MAX_COLUMNS], int state,
  * RETURN:
  *  none
  ******************************************************************************/
-void mark_table_single_char(int _table[][MAX_COLUMNS], int state,
+void mark_table_single_char(int _table[][MAX_COLS], int state,
                             const char columns[]) {
     // MARK SUCCESS/FAILURE
     mark_fail(_table, state + 0);
@@ -273,9 +272,9 @@ void mark_table_single_char(int _table[][MAX_COLUMNS], int state,
  *  for searching for two characters relationship tokens, such as "ab" or "cd".
  *
  * PRE-CONDITIONS:
- *  ROWS REQUIRE: 3
- *  int _table[][MAX_COLUMNS]: integer array
- *  int state                : 0 to MAX_ROWS - 1
+ *  ROWS REQUIRE          : 3
+ *  int _table[][MAX_COLS]: integer array
+ *  int state             : 0 to MAX_ROWS - 1
  *
  * POST-CONDITIONS:
  *  Cells are marked with state
@@ -283,7 +282,7 @@ void mark_table_single_char(int _table[][MAX_COLUMNS], int state,
  * RETURN:
  *  none
  ******************************************************************************/
-void mark_table_duo_chars(int _table[][MAX_COLUMNS], int state, const char a,
+void mark_table_duo_chars(int _table[][MAX_COLS], int state, const char a,
                           const char b) {
     // MARK SUCCESS/FAILURE
     // state [+0] ---> fail
@@ -303,10 +302,10 @@ void mark_table_duo_chars(int _table[][MAX_COLUMNS], int state, const char a,
  *  for searching for concatenated Tokens inside delimiter.
  *
  * PRE-CONDITIONS:
- *  ROWS REQUIRE: 3
- *  int _table[][MAX_COLUMNS]: integer array
- *  int state                : 0 to MAX_ROWS - 1
- *  const char delim         : delimiter char
+ *  ROWS REQUIRE          : 3
+ *  int _table[][MAX_COLS]: integer array
+ *  int state             : 0 to MAX_ROWS - 1
+ *  const char delim      : delimiter char
  *
  * POST-CONDITIONS:
  *  Cells are marked with state
@@ -314,7 +313,7 @@ void mark_table_duo_chars(int _table[][MAX_COLUMNS], int state, const char a,
  * RETURN:
  *  none
  ******************************************************************************/
-void mark_table_enclosed_delim(int _table[][MAX_COLUMNS], int state,
+void mark_table_enclosed_delim(int _table[][MAX_COLS], int state,
                                const char delim) {
     // MARK SUCCESS/FAILURE
     // state [+0] ---> fail
@@ -339,10 +338,10 @@ void mark_table_enclosed_delim(int _table[][MAX_COLUMNS], int state,
  *  for searching for concatenated identifier Tokens inside delimiter.
  *
  * PRE-CONDITIONS:
- *  ROWS REQUIRE: 4
- *  int _table[][MAX_COLUMNS]: integer array
- *  int state                : 0 to MAX_ROWS - 1
- *  const char delim         : delimiter char
+ *  ROWS REQUIRE          : 4
+ *  int _table[][MAX_COLS]: integer array
+ *  int state             : 0 to MAX_ROWS - 1
+ *  const char delim      : delimiter char
  *
  * POST-CONDITIONS:
  *  Cells are marked with state
@@ -350,7 +349,7 @@ void mark_table_enclosed_delim(int _table[][MAX_COLUMNS], int state,
  * RETURN:
  *  none
  ******************************************************************************/
-void mark_table_enclosed_delim_ident(int _table[][MAX_COLUMNS], int state,
+void mark_table_enclosed_delim_ident(int _table[][MAX_COLS], int state,
                                      const char delim) {
     // MARK SUCCESS/FAILURE
     // state [+0] ---> fail
@@ -378,9 +377,9 @@ void mark_table_enclosed_delim_ident(int _table[][MAX_COLUMNS], int state,
  *  for searching for DOUBLE token: formatted and unformatted numbers.
  *
  * PRE-CONDITIONS:
- *  ROWS REQUIRE: 10
- *  int _table[][MAX_COLUMNS]: integer array
- *  int state                : 0 to MAX_ROWS - 1
+ *  ROWS REQUIRE          : 10
+ *  int _table[][MAX_COLS]: integer array
+ *  int state             : 0 to MAX_ROWS - 1
  *
  * POST-CONDITIONS:
  *  Cells are marked with state
@@ -388,7 +387,7 @@ void mark_table_enclosed_delim_ident(int _table[][MAX_COLUMNS], int state,
  * RETURN:
  *  none
  ******************************************************************************/
-void mark_table_double(int _table[][MAX_COLUMNS], int state) {
+void mark_table_double(int _table[][MAX_COLS], int state) {
     // MARK SUCCESS/FAILURE
     // state [+0] ---> fail
     // state [+1] ---> success
@@ -456,9 +455,9 @@ void mark_table_double(int _table[][MAX_COLUMNS], int state) {
  *  for searching for IDENTIFIER tokens, such as "_APPLE_12".
  *
  * PRE-CONDITIONS:
- *  ROWS REQUIRE: 2
- *  int _table[][MAX_COLUMNS]: integer array
- *  int state                : 0 to MAX_ROWS - 1
+ *  ROWS REQUIRE          : 2
+ *  int _table[][MAX_COLS]: integer array
+ *  int state             : 0 to MAX_ROWS - 1
  *
  * POST-CONDITIONS:
  *  Cells are marked with state
@@ -466,7 +465,7 @@ void mark_table_double(int _table[][MAX_COLUMNS], int state) {
  * RETURN:
  *  none
  ******************************************************************************/
-void mark_table_identifier(int _table[][MAX_COLUMNS], int state) {
+void mark_table_identifier(int _table[][MAX_COLS], int state) {
     // MARK SUCCESS/FAILURE
     // state [+0] ---> fail
     // state [+1] ---> success
@@ -492,10 +491,10 @@ void mark_table_identifier(int _table[][MAX_COLUMNS], int state) {
  *  for searching for relational operator tokens, such as "=" or "==".
  *
  * PRE-CONDITIONS:
- *  ROWS REQUIRE: 9
- *  CHARS REQUIRE: const char L_OPS[] = "|&<>";
- *  int _table[][MAX_COLUMNS]: integer array
- *  int state                : 0 to MAX_ROWS - 1
+ *  ROWS REQUIRE          : 9
+ *  CHARS REQUIRE         : const char L_OPS[] = "|&<>";
+ *  int _table[][MAX_COLS]: integer array
+ *  int state             : 0 to MAX_ROWS - 1
  *
  * POST-CONDITIONS:
  *  Cells are marked with state
@@ -503,7 +502,7 @@ void mark_table_identifier(int _table[][MAX_COLUMNS], int state) {
  * RETURN:
  *  none
  ******************************************************************************/
-void mark_table_l_ops(int _table[][MAX_COLUMNS], int state) {
+void mark_table_l_ops(int _table[][MAX_COLS], int state) {
     // MARK SUCCESS/FAILURE
     // state [+0] ---> fail
     // state [+1] ---> success
@@ -536,10 +535,10 @@ void mark_table_l_ops(int _table[][MAX_COLUMNS], int state) {
  *  for searching for relational operator tokens, such as "=" or "==".
  *
  * PRE-CONDITIONS:
- *  ROWS REQUIRE: 3
- *  CHARS REQUIRE: const char R_OPS[] = "<=>";
- *  int _table[][MAX_COLUMNS]: integer array
- *  int state                : 0 to MAX_ROWS - 1
+ *  ROWS REQUIRE          : 3
+ *  CHARS REQUIRE         : const char R_OPS[] = "<=>";
+ *  int _table[][MAX_COLS]: integer array
+ *  int state             : 0 to MAX_ROWS - 1
  *
  * POST-CONDITIONS:
  *  Cells are marked with state
@@ -547,7 +546,7 @@ void mark_table_l_ops(int _table[][MAX_COLUMNS], int state) {
  * RETURN:
  *  none
  ******************************************************************************/
-void mark_table_r_ops(int _table[][MAX_COLUMNS], int state) {
+void mark_table_r_ops(int _table[][MAX_COLS], int state) {
     // MARK SUCCESS/FAILURE
     // state [+0] ---> fail
     // state [+1] ---> success
@@ -567,7 +566,7 @@ void mark_table_r_ops(int _table[][MAX_COLUMNS], int state) {
  *  Prints the table to console.
  *
  * PRE-CONDITIONS:
- *  int _table[][MAX_COLUMNS]: integer array
+ *  int _table[][MAX_COLS]: integer array
  *
  * POST-CONDITIONS:
  *  Output of table values.
@@ -575,15 +574,15 @@ void mark_table_r_ops(int _table[][MAX_COLUMNS], int state) {
  * RETURN:
  *  none
  ******************************************************************************/
-void print_table(const int _table[][MAX_COLUMNS]) {
+void print_table(const int _table[][MAX_COLS]) {
     int cols_per_row = 11, count = 1, value_len;
 
-    while(count < MAX_COLUMNS) {
+    while(count < MAX_COLS) {
         // print header
         std::cout << " S ";
         std::cout << "|  " << 0 << "  ";
         for(int col = count; col < count + cols_per_row; ++col) {
-            if(col < MAX_COLUMNS && (col < 32 || col > 126)) {
+            if(col < MAX_COLS && (col < 32 || col > 126)) {
                 value_len = std::to_string(col).length();
                 if(value_len == 1)
                     std::cout << "|  " << col << "  ";
@@ -592,7 +591,7 @@ void print_table(const int _table[][MAX_COLUMNS]) {
                 else if(value_len == 3)
                     std::cout << "| " << col << " ";
 
-            } else if(col < MAX_COLUMNS && col > 31 && col < 127)
+            } else if(col < MAX_COLS && col > 31 && col < 127)
                 std::cout << "| '" << static_cast<char>(col) << "' ";
         }
         std::cout << "|" << std::endl;
@@ -600,7 +599,7 @@ void print_table(const int _table[][MAX_COLUMNS]) {
         // print bar
         std::cout << "--- -----";
         for(int col = count; col < count + cols_per_row; ++col)
-            if(col < MAX_COLUMNS) std::cout << " -----";
+            if(col < MAX_COLS) std::cout << " -----";
 
         std::cout << std::endl;
 
@@ -619,7 +618,7 @@ void print_table(const int _table[][MAX_COLUMNS]) {
                 std::cout << "| " << _table[row][0] << " ";
 
             for(int col = count; col < count + cols_per_row; ++col) {
-                if(col < MAX_COLUMNS) {
+                if(col < MAX_COLS) {
                     value_len = std::to_string(_table[row][col]).length();
                     if(value_len == 1)
                         std::cout << "|  " << _table[row][col] << "  ";
@@ -685,11 +684,11 @@ void show_string(const char s[], int _pos) {
  *  original position.
  *
  * PRE-CONDITIONS:
- *  const int _table[][MAX_COLUMNS]: integer array
- *  const char input[]             : input string to process
- *  int &_pos                      : position of string by reference
- *  int state                      : starting state (row) in adjacency table
- *  string &token                  : valid token if found
+ *  const int _table[][MAX_COLS]: integer array
+ *  const char input[]          : input string to process
+ *  int &_pos                   : position of string by reference
+ *  int state                   : starting state (row) in adjacency table
+ *  string &token               : valid token if found
  *
  * POST-CONDITIONS:
  *  Success/fail token extraction
@@ -697,7 +696,7 @@ void show_string(const char s[], int _pos) {
  * RETURN:
  *  boolean
  ******************************************************************************/
-bool get_token(const int _table[][MAX_COLUMNS], const char input[], int &_pos,
+bool get_token(const int _table[][MAX_COLS], const char input[], int &_pos,
                int state, std::string &token) {
     bool success = false;     // get_token's success
     int success_pos = -1,     // last successful position

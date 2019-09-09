@@ -7,9 +7,9 @@ INC             := include
 SRC				:= src
 PROC            := proc
 TEST            := tests
-PARSER          := state_machine.o token.o tokenizer.o parser.o
-ALL             := MyCompress MyDecompress ForkCompress MinShell MoreShell\
-                   ParFork
+SHEL            := state_machine.o token.o tokenizer.o parser.o shell.o
+ALL             := MyCompress MyDecompress ForkCompress PipeCompress\
+                   MinShell MoreShell ParFork
 
 # $@ targt name
 # $< first prerequisite
@@ -21,19 +21,28 @@ all: $(ALL)
 MyCompress: MyCompress.o
 	$(CXX) -o $@ $^
 
-MyCompress.o: $(PROC)/MyCompress.cpp
+MyCompress.o: $(PROC)/MyCompress.cpp\
+	$(INC)/compression.h
 	$(CXX) $(CXXFLAGS) -c $<
 
 MyDecompress: MyDecompress.o
 	$(CXX) -o $@ $^
 
-MyDecompress.o: $(PROC)/MyDecompress.cpp
+MyDecompress.o: $(PROC)/MyDecompress.cpp\
+	$(INC)/compression.h
 	$(CXX) $(CXXFLAGS) -c $<
 
 ForkCompress: ForkCompress.o
 	$(CXX) -o $@ $^
 
 ForkCompress.o: $(PROC)/ForkCompress.cpp
+	$(CXX) $(CXXFLAGS) -c $<
+
+PipeCompress: PipeCompress.o
+	$(CXX) -o $@ $^
+
+PipeCompress.o: $(PROC)/PipeCompress.cpp\
+	$(INC)/compression.h
 	$(CXX) $(CXXFLAGS) -c $<
 
 MinShell: MinShell.o
@@ -54,13 +63,13 @@ ParFork: ParFork.o
 ParFork.o: $(PROC)/ParFork.cpp
 	$(CXX) $(CXXFLAGS) -c $<
 
-test: test.o $(PARSER)
+test: test.o $(SHEL)
 	$(CXX) -o $@ $^
 
 test.o: $(TEST)/test.cpp
 	$(CXX) $(CXXFLAGS) -c $<
 
-# PARSER
+# SHELL
 state_machine.o: ${SRC}/state_machine.cpp\
 	${INC}/state_machine.h
 	$(CXX) $(CXXFLAGS) -c $<
@@ -75,6 +84,10 @@ tokenizer.o: ${SRC}/tokenizer.cpp\
 
 parser.o: ${SRC}/parser.cpp\
 	${INC}/parser.h
+	$(CXX) $(CXXFLAGS) -c $<
+
+shell.o: ${SRC}/shell.cpp\
+	${INC}/shell.h
 	$(CXX) $(CXXFLAGS) -c $<
 
 .PHONY: clean

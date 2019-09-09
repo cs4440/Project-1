@@ -7,15 +7,13 @@
 #include <vector>                  // vector
 #include "../include/tokenizer.h"  // Tokenizer class
 
-namespace parser {
-
-enum grammar { PARSE_START, CONCAT, PUSH, PUSH_BOTH, BSLASH, SIZE };
-enum dimensions { MAX_ROWS = SIZE, MAX_COLS = state_machine::STATE_SIZE };
-
 class Parser {
 public:
+    enum States { PARSE_START, CONCAT, PUSH, PUSH_BOTH, BSLASH, SIZE };
+    enum Size { MAX_ROWS = SIZE, MAX_COLS = state_machine::STATE_SIZE };
+
     // CONSTRUCTORS
-    Parser(char* buf = nullptr, std::size_t buf_size = tok::MAX_BUFFER);
+    Parser(char* buf = nullptr, std::size_t buf_size = Tokenizer::MAX_BUF);
 
     // ACCESSORS
     const std::vector<std::string>& get_tokens() const;  // list of tokens
@@ -32,7 +30,7 @@ private:
     static int _table[MAX_ROWS][MAX_COLS];  // adjacency table
 
     std::size_t _max_buf;              // max buffer size for tokenizer
-    tok::Tokenizer _tokenizer;         // tokenizes buffer
+    Tokenizer _tokenizer;              // tokenizes buffer
     std::vector<std::string> _tokens;  // list of tokens
 
     bool _init();  // init class
@@ -66,7 +64,5 @@ private:
 
     void print_table(const int _table[][MAX_COLS]);  // print table for debug
 };
-
-}  // namespace parser
 
 #endif  // PARSER_H

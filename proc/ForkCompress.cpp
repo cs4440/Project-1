@@ -1,7 +1,7 @@
 /*
  * Demonstration of fork() process with MyCompress program
  *
- * DEAILS
+ * DETAILS
  * ------
  * Forks a process and passes arguments to exec call of MyCompress
  */
@@ -9,8 +9,8 @@
 #include <sys/types.h>  // pid_t
 #include <sys/wait.h>   // wait()
 #include <unistd.h>     // fork(), execl()
-#include <iostream>
-#include <string>
+#include <iostream>     // stream
+#include <string>       // string
 
 int main(int argc, char *argv[]) {
     char default_src[] = "res/sample.txt",

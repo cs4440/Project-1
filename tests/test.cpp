@@ -1,10 +1,11 @@
 #include <iostream>
 #include <string>
 #include "../include/parser.h"
+#include "../include/shell.h"
 #include "../include/tokenizer.h"
 
 int main(int argc, char* argv[]) {
-    parser::Parser parser;
+    Parser parser;
     std::vector<std::string> vec;
     std::string raw1 =
         R"(ls -al --path=="hello 'John Doe' world"\)";
@@ -16,8 +17,8 @@ int main(int argc, char* argv[]) {
     std::string tokraw1 =
         R"(==path | || << >> <> <| |>\ --path=="Name1 'Name 2 Name3' Name4")";
 
-    tok::Tokenizer tk;
-    tok::Token token;
+    Tokenizer tk;
+    Token token;
 
     std::cout << "CLI arguments\n";
     std::cout << "--------------------------" << std::endl;
@@ -63,6 +64,13 @@ int main(int argc, char* argv[]) {
     std::cout << "\nResult:" << std::endl;
     vec = parser.get_tokens();
     for(auto& v : vec) std::cout << v << std::endl;
+
+    /////
+    Shell shell;
+
+    std::cout << "running shell" << std::endl;
+    shell.run();
+    std::cout << "ending shell" << std::endl;
 
     return 0;
 }

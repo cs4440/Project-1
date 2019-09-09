@@ -19,16 +19,14 @@
 #include "state_machine.h"  // state_machine functions
 #include "token.h"          // Token class
 
-namespace tok {
-
-enum { MAX_BUFFER = 1024 };
-
 class Tokenizer {
 public:
+    enum Size { MAX_BUF = 1024 };
+
     // CONSTRUCTORS
-    Tokenizer(std::size_t max_buf = MAX_BUFFER);
-    Tokenizer(char str[], std::size_t max_buf = MAX_BUFFER);
-    Tokenizer(const char str[], std::size_t max_buf = MAX_BUFFER);
+    Tokenizer(std::size_t max_buf = MAX_BUF);
+    Tokenizer(char str[], std::size_t max_buf = MAX_BUF);
+    Tokenizer(const char str[], std::size_t max_buf = MAX_BUF);
 
     ~Tokenizer();
 
@@ -45,7 +43,7 @@ public:
     friend Tokenizer& operator>>(Tokenizer& s, Token& t);
 
 private:
-    static int _table[state_machine::MAX_ROWS][state_machine::MAX_COLUMNS];
+    static int _table[state_machine::MAX_ROWS][state_machine::MAX_COLS];
     static bool _need_init;  // check if _table is initialized
 
     char* _buffer;         // input string
@@ -53,10 +51,8 @@ private:
     int _buffer_size;      // input string size
     int _pos;              // current position in the string
 
-    void make_table(int _table[][state_machine::MAX_COLUMNS]);
+    void make_table(int _table[][state_machine::MAX_COLS]);
     bool get_token(int start_state, std::string& token);
 };
-
-}  // namespace tok
 
 #endif  // TOKENIZER_H

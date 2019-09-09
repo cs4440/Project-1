@@ -1,7 +1,5 @@
 #include "../include/parser.h"
 
-namespace parser {
-
 // STATIC VARIABLES
 bool Parser::_need_init = true;          // static class init flag
 int Parser::_table[MAX_ROWS][MAX_COLS];  // adjacency table
@@ -35,7 +33,7 @@ bool Parser::parse() {
     bool get_newline = false;
     int state = PARSE_START;
     std::string concat;
-    tok::Token token;
+    Token token;
 
     while(_tokenizer >> token) {
         state = _table[state][token.type()];
@@ -205,5 +203,3 @@ void Parser::print_table(const int _table[][MAX_COLS]) {
         count += cols_per_row;  // udpate count
     }
 }
-
-}  // namespace parser

@@ -16,8 +16,6 @@
 #include <string>           // string objects
 #include "state_machine.h"  // state_machine functions
 
-namespace tok {
-
 class Token {
 public:
     // CONSTRUCTORS
@@ -50,7 +48,5 @@ protected:
     int _type;           // type of token
     int _sub_type;       // sub type
 };
-
-}  // namespace tok
 
 #endif  // TOKEN_H

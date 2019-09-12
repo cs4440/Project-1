@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
         full_path += "/MyCompress";
 
         // call exec to spawn MyCompress
-        execl(full_path.c_str(), full_path.c_str(), src, dest, NULL);
+        execl(full_path.c_str(), full_path.c_str(), src, dest, nullptr);
 
         std::cerr << "exec() failed" << std::endl;
         return 1;

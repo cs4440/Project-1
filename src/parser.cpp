@@ -14,7 +14,7 @@ Parser::Parser(char* buf, std::size_t buf_size)
 }
 
 // returns tokens list
-const std::vector<std::string>& Parser::get_tokens() const { return _tokens; }
+const std::vector<Token>& Parser::get_tokens() const { return _tokens; }
 
 // clear all private states
 void Parser::clear() {
@@ -31,9 +31,8 @@ bool Parser::parse() {
     using namespace state_machine;
 
     bool get_newline = false;
-    int state = PARSE_START;
-    std::string concat;
-    Token token;
+    int state = START;
+    Token concat, token;
 
     while(_tokenizer >> token) {
         state = _table[state][token.type()];
@@ -43,10 +42,10 @@ bool Parser::parse() {
             concat.clear();
         } else if(state == PUSH_BOTH) {
             if(!concat.empty()) _tokens.emplace_back(concat);
-            _tokens.emplace_back(token.string());
+            _tokens.emplace_back(token);
             concat.clear();
         } else if(state == CONCAT) {
-            concat += token.string();
+            concat += token;
             get_newline = false;
         } else if(state == BSLASH) {
             get_newline = true;
@@ -111,11 +110,11 @@ void Parser::mark_table(int _table[][MAX_COLS]) {
     using namespace state_machine;
 
     // mark start states
-    mark_cell(PARSE_START, _table, STATE_ARG, CONCAT);
-    mark_cell(PARSE_START, _table, STATE_QUOTE, CONCAT);
-    mark_cell(PARSE_START, _table, STATE_OP, BSLASH);
-    mark_cell(PARSE_START, _table, STATE_BSLASH, BSLASH);
-    mark_cell(PARSE_START, _table, STATE_SPACE, PARSE_START);
+    mark_cell(START, _table, STATE_ARG, CONCAT);
+    mark_cell(START, _table, STATE_QUOTE, CONCAT);
+    mark_cell(START, _table, STATE_OP, CONCAT);
+    mark_cell(START, _table, STATE_BSLASH, BSLASH);
+    mark_cell(START, _table, STATE_SPACE, START);
 
     mark_cell(CONCAT, _table, STATE_ARG, CONCAT);
     mark_cell(CONCAT, _table, STATE_QUOTE, CONCAT);
@@ -127,13 +126,13 @@ void Parser::mark_table(int _table[][MAX_COLS]) {
     mark_cell(PUSH, _table, STATE_QUOTE, CONCAT);
     mark_cell(PUSH, _table, STATE_OP, PUSH_BOTH);
     mark_cell(PUSH, _table, STATE_BSLASH, BSLASH);
-    mark_cell(PUSH, _table, STATE_SPACE, PARSE_START);
+    mark_cell(PUSH, _table, STATE_SPACE, START);
 
     mark_cell(PUSH_BOTH, _table, STATE_ARG, CONCAT);
     mark_cell(PUSH_BOTH, _table, STATE_QUOTE, CONCAT);
     mark_cell(PUSH_BOTH, _table, STATE_OP, PUSH_BOTH);
     mark_cell(PUSH_BOTH, _table, STATE_BSLASH, BSLASH);
-    mark_cell(PUSH_BOTH, _table, STATE_SPACE, PARSE_START);
+    mark_cell(PUSH_BOTH, _table, STATE_SPACE, START);
 
     mark_cell(BSLASH, _table, STATE_ARG, CONCAT);
     mark_cell(BSLASH, _table, STATE_QUOTE, CONCAT);

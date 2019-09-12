@@ -16,8 +16,8 @@ int main(int argc, char *argv[]) {
     char default_src[] = "res/sample.txt",
          default_dest[] = "res/pipecompress.txt";
     char *src = default_src, *dest = default_dest;
-    int chr;
-    int fd[2];
+    int chr,    // character from file
+        fd[2];  // pipe file descriptors
     pid_t pid;
 
     // check for argument overrides
@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    pid = fork();  // fork process and return int state
+    pid = fork();
 
     if(pid < 0) {
         std::cerr << "fork() failed" << std::endl;

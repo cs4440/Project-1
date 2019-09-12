@@ -11,7 +11,7 @@
 #include <sys/wait.h>   // wait()
 #include <unistd.h>     // exec()
 #include <unistd.h>     // fork()
-#include <cassert>      // asser()
+#include <cassert>      // assert()
 #include <cstdio>       // fopen()
 #include <cstdlib>      // atoi()
 #include <iostream>     // stream
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
     for(unsigned i = 0; i < n; ++i)
         if((pid = fork()) == 0) {
             execle("MyCompress", "MyCompress", split_files[i].c_str(),
-                   compressed_files[i].c_str(), nullptr);
+                   compressed_files[i].c_str(), nullptr, nullptr);
 
             // exec fails here
             std::cerr << "exec() failed" << std::endl;

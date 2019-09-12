@@ -4,12 +4,12 @@ EXTRA_CCFLAGS   := -Wall -Werror=return-type -Wextra -pedantic
 CXXFLAGS        := $(DEBUG_LEVEL) $(EXTRA_CCFLAGS)
 
 INC             := include
-SRC				:= src
+SRC             := src
 PROC            := proc
 TEST            := tests
 SHEL            := state_machine.o token.o tokenizer.o parser.o shell.o
-ALL             := MyCompress MyDecompress ForkCompress PipeCompress\
-                   MinShell MoreShell ParFork
+ALL             := MyCompress MyDecompress ForkCompress PipeCompress ParFork\
+                   MinShell MoreShell DupShell
 
 # $@ targt name
 # $< first prerequisite
@@ -45,6 +45,12 @@ PipeCompress.o: $(PROC)/PipeCompress.cpp\
 	$(INC)/compression.h
 	$(CXX) $(CXXFLAGS) -c $<
 
+ParFork: ParFork.o
+	$(CXX) -o $@ $^
+
+ParFork.o: $(PROC)/ParFork.cpp
+	$(CXX) $(CXXFLAGS) -c $<
+
 MinShell: MinShell.o
 	$(CXX) -o $@ $^
 
@@ -57,10 +63,10 @@ MoreShell: MoreShell.o
 MoreShell.o: $(PROC)/MoreShell.cpp
 	$(CXX) $(CXXFLAGS) -c $<
 
-ParFork: ParFork.o
+DupShell: DupShell.o $(SHEL)
 	$(CXX) -o $@ $^
 
-ParFork.o: $(PROC)/ParFork.cpp
+DupShell.o: $(PROC)/DupShell.cpp
 	$(CXX) $(CXXFLAGS) -c $<
 
 test: test.o $(SHEL)

@@ -1,5 +1,27 @@
 #include "../include/token.h"
 
+Token& Token::operator=(const Token& rhs) {
+    _token = rhs._token;
+    _type = rhs._type;
+    _sub_type = rhs._sub_type;
+    return *this;
+}
+
+/*******************************************************************************
+ * DESCRIPTION:
+ *  Returns empty state of Token
+ *
+ * PRE-CONDITIONS:
+ *  none
+ *
+ * POST-CONDITIONS:
+ *  none
+ *
+ * RETURN:
+ *  bool
+ ******************************************************************************/
+bool Token::empty() const { return _token.empty(); }
+
 /*******************************************************************************
  * DESCRIPTION:
  *  Returns an integer corresponding to the string type, such as the
@@ -230,6 +252,8 @@ bool operator!=(const Token& lhs, const Token& rhs) {
  ******************************************************************************/
 Token& operator+=(Token& lhs, const Token& rhs) {
     lhs._token += rhs._token;
+    lhs._type = rhs._type;
+    lhs._sub_type = rhs._sub_type;
     return lhs;
 }
 
@@ -250,5 +274,7 @@ Token& operator+=(Token& lhs, const Token& rhs) {
  ******************************************************************************/
 Token& operator+(Token& lhs, const Token& rhs) {
     lhs._token += rhs._token;
+    lhs._type = rhs._type;
+    lhs._sub_type = rhs._sub_type;
     return lhs;
 }

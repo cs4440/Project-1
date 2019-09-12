@@ -3,17 +3,16 @@
  * ID          : 00991588
  * CLASS       : CS008
  * HEADER      : tok
- * DESCRIPTION : This header declares class Token, which represents a string
- *      and a type associated with that string. It facilitates the STokenizer
- *      for interaction and reporting the type of tokens.
+ * DESCRIPTION : Token holds std::string and type associated with it. Types
+ *      are defined by state_machine.h
  *
  *      Specialized for command line arguments.
  ******************************************************************************/
 #ifndef TOKEN_H
 #define TOKEN_H
 
-#include <iostream>         // stream objects
-#include <string>           // string objects
+#include <iostream>         // stream
+#include <string>           // string
 #include "state_machine.h"  // state_machine functions
 
 class Token {
@@ -23,8 +22,12 @@ public:
         : _token(str), _type(type), _sub_type(_type) {}
     Token(std::string str, int type, int sub_type)
         : _token(str), _type(type), _sub_type(sub_type) {}
+    Token(const Token& t)
+        : _token(t._token), _type(t._type), _sub_type(t._sub_type) {}
+    Token& operator=(const Token& rhs);
 
     // ACCESSORS
+    bool empty() const;                       // if Token is empty
     int type() const;                         // return type in INT
     int sub_type() const;                     // return sub type in INT
     virtual std::string type_string() const;  // return type of token in string

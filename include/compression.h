@@ -1,3 +1,9 @@
+/*******************************************************************************
+ * CLASS       : CS4440
+ * HEADER      : compression
+ * DESCRIPTION : Defines simple compression/decompression functions dealing
+ *      0's and 1's.
+ ******************************************************************************/
 #ifndef COMPRESSION_H
 #define COMPRESSION_H
 
@@ -5,16 +11,16 @@
 #include <string>   // string
 
 // compress ascii 0 and 1 text file
-// @param src - reference input file stream
-// @param dest - reference output file stream
+// @param src - input file stream
+// @param dest - output file stream
 void compress(FILE *src, FILE *dest);
 
 // decompress a compressed file of 0/1
-// @param src - reference input file stream
-// @param dest - reference output file stream
+// @param src - input file stream
+// @param dest - output file stream
 void decompress(FILE *src, FILE *dest);
 
-// write n number of bits to end of file
+// write n number of bits and compress if over limit
 // @param dest - output file stream to write
 // @param c - character to write
 // @param size - number of characers to write

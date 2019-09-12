@@ -2,20 +2,19 @@
  * AUTHOR      : Thuan Tang
  * ID          : 00991588
  * CLASS       : CS008
- * HEADER      : sql_tokenizer
+ * HEADER      : tokenizer
  * NAMESPACE   : tok
- * DESCRIPTION : This header defines the tokenizer for SQL to extract tokens
- *      from a char string. The tokens generated have specific SQL states
- *      ID, which is used by the SQLParser class.
+ * DESCRIPTION : Tokenizer will tokenizes strings into various Tokens
+ *      of various states defined by state_machine.h
  *
  *      Specialized for command line arguments.
  ******************************************************************************/
 #ifndef TOKENIZER_H
 #define TOKENIZER_H
 
-#include <cassert>          // assertions
-#include <iostream>         // stream objects
-#include <string>           // string objects
+#include <cassert>          // assert()
+#include <iostream>         // stream
+#include <string>           // string
 #include "state_machine.h"  // state_machine functions
 #include "token.h"          // Token class
 

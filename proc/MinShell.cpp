@@ -10,7 +10,11 @@
 int main() {
     std::string token;
 
-    while(std::cin >> token) {
+    while(token != "exit") {
+        // user input
+        std::cout << "# ";
+        std::cin >> token;
+
         // allocation
         char **args = new char *[2];
         args[0] = new char[token.size() + 1];
@@ -21,8 +25,7 @@ int main() {
         args[1] = NULL;
 
         // check for quit() command to exit shell and deallocate all
-        if(std::strncmp(args[0], "quit()", 6) == 0 ||
-           std::strncmp(args[0], "exit()", 6) == 0) {
+        if(token == "exit") {
             // deallocate all
             delete[] args[0];
             delete[] args;

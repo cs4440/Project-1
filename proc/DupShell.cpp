@@ -8,8 +8,6 @@
  * Shell will parse a line of user inputs into argument commands and operators
  * It can chain operator | with multiple processes.
  */
-#include <iostream>
-#include <string>
 #include "../include/shell.h"  // Shell class
 
 int main() {

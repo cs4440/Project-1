@@ -27,37 +27,41 @@ void Shell::run() {
 
         tokens = _parser.get_tokens();
 
-        if(!tokens.empty()) {
-            cmd = tokens[0].string();
+        if(!tokens.empty() && (cmd = tokens[0].string()) != "exit") {
+            // split tokens into args and ops
+            _parse_cmds_and_ops(tokens, args, ops);
 
-            if(cmd != "exit") {
-                // split tokens into args and ops
-                _parse_cmds_and_ops(tokens, args, ops);
+            try {
                 _run_cmds(args, ops);
-                args.clear();
+            } catch(const std::exception &e) {
+                std::cerr << e.what() << std::endl;
+                break;
             }
+            args.clear();
         }
     }
 }
 
-// convert a vector of strings into commands and operators
-// pre-condition: non-empty vector of strings are passed in
-// post-condition: each command (w/ their arguments) is pushed in vvstr
-//                 queue of operators are populated if there are ops
-//                 tokens is unchanged
-// @param tokens - input, vector of strings
-// @param vvstr - ret ref, vector of vector of strings
-// @param qops - ret ref, queue of operators
-//
-// Example:
-// ls -al | cat | wc -l
-//
-// vvstr[0]: ls, -al
-// vvstr[1]: cat
-// vvstr[2]: wc, -l
-//
-// qops[0]: |
-// qops[1]: |
+/*
+ * convert a vector of strings into commands and operators
+ * pre-condition: non-empty vector of strings are passed in
+ * post-condition: each command (w/ their arguments) is pushed in vvstr
+ *                 queue of operators are populated if there are ops
+ *                 tokens is unchanged
+ * @param tokens - input, vector of strings
+ * @param vvstr - ret ref, vector of vector of strings
+ * @param qops - ret ref, queue of operators
+ *
+ * Example:
+ * ls -al | cat | wc -l
+ *
+ * vvstr[0]: ls, -al
+ * vvstr[1]: cat
+ * vvstr[2]: wc, -l
+ *
+ * qops[0]: |
+ * qops[1]: |
+ */
 void Shell::_parse_cmds_and_ops(const std::vector<Token> &tokens,
                                 std::vector<std::vector<std::string>> &vvstr,
                                 std::queue<std::string> &qops) {
@@ -82,10 +86,9 @@ void Shell::_parse_cmds_and_ops(const std::vector<Token> &tokens,
 // parent will fork n number children commands
 // children will use dup2 to connect previous file descriptors to current
 //      file descriptors
-bool Shell::_run_cmds(std::vector<std::vector<std::string>> &args,
+void Shell::_run_cmds(std::vector<std::vector<std::string>> &args,
                       std::queue<std::string> &ops) {
-    std::string prev_op = "";
-    std::string cur_op = "";
+    std::string cur_op = "", prev_op = "";
     char **cargs = nullptr;
     int *fd = nullptr, *cur_fd = nullptr, *prev_fd = nullptr;
     int pipe_status, wait_status = 0;
@@ -96,8 +99,8 @@ bool Shell::_run_cmds(std::vector<std::vector<std::string>> &args,
     for(std::size_t i = 0; i < ops.size(); ++i) {
         pipe_status = pipe(fd + 2 * i);
         if(pipe_status < 0) {
-            std::cerr << "pipe failed at pos " << i << std::endl;
-            exit(1);
+            delete[] fd;
+            throw std::runtime_error("Pipe failed");
         }
     }
 
@@ -114,8 +117,10 @@ bool Shell::_run_cmds(std::vector<std::vector<std::string>> &args,
         pid = fork();
 
         if(pid < 0) {
-            std::cerr << "fork failed" << std::endl;
-            exit(1);
+            delete[] fd;
+            _deallocate_all(cargs, args[i].size());
+
+            throw std::runtime_error("Fork failed");
         } else if(pid == 0) {
             if(!prev_op.empty()) {
                 if(prev_op == "|") {
@@ -133,32 +138,31 @@ bool Shell::_run_cmds(std::vector<std::vector<std::string>> &args,
                 }
             }
             execvp(cargs[0], cargs);
-            std::cerr << "exec failed" << std::endl;
-            exit(1);
+
+            delete[] fd;
+            _deallocate_all(cargs, args[i].size());
+
+            throw std::runtime_error("Command not found");
+        } else {
+            if(prev_fd) {
+                close(prev_fd[0]);
+                close(prev_fd[1]);
+            }
+
+            prev_fd = cur_fd;
+            prev_op = cur_op;
+            cur_op.clear();
+
+            if(ops.size()) ops.pop();
+
+            _deallocate_all(cargs, args[i].size());
         }
-
-        if(prev_fd) {
-            close(prev_fd[0]);
-            close(prev_fd[1]);
-        }
-
-        prev_fd = cur_fd;
-        prev_op = cur_op;
-        cur_op = "";
-
-        if(ops.size()) ops.pop();
-
-        // deallocate cargs and all its children
-        _deallocate_all(cargs, args[i].size());
     }
-
     delete[] fd;
 
     // continue to wait for all children to terminate
     while((wait_pid = wait(&wait_status)) > 0) {
     }
-
-    return true;
 }
 
 // delete entire char** and its child elements
@@ -172,17 +176,17 @@ void Shell::_deallocate_all(char **arr, std::size_t size) {
 // convert a vector of strings to char**
 // return char** - arra of cstrings
 // NOTE - caller must manually handle deallocations!
-char **Shell::_vec_str_to_char_args(std::vector<std::string> &v_str) {
+char **Shell::_vec_str_to_char_args(std::vector<std::string> &vstr) {
     char *cstr = nullptr;
-    char **cargs = new char *[v_str.size() + 1];
+    char **cargs = new char *[vstr.size() + 1];
 
-    for(std::size_t i = 0; i < v_str.size(); ++i) {
-        cstr = new char[v_str[i].size() + 1];
-        std::copy(v_str[i].begin(), v_str[i].end(), cstr);
-        cstr[v_str[i].size()] = '\0';
+    for(std::size_t i = 0; i < vstr.size(); ++i) {
+        cstr = new char[vstr[i].size() + 1];
+        std::copy(vstr[i].begin(), vstr[i].end(), cstr);
+        cstr[vstr[i].size()] = '\0';
         cargs[i] = cstr;
     }
-    cargs[v_str.size()] = nullptr;
+    cargs[vstr.size()] = nullptr;
 
     return cargs;
 }

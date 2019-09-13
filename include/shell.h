@@ -13,6 +13,7 @@
 #include <cstdlib>                     // exit()
 #include <iostream>                    // cin
 #include <queue>                       // queue
+#include <stdexcept>                   // exceptions
 #include <string>                      // getline()
 #include <vector>                      // vector
 #include "../include/parser.h"         // Parser, get cli tokens with grammar
@@ -31,7 +32,7 @@ private:
     void _parse_cmds_and_ops(const std::vector<Token> &tokens,
                              std::vector<std::vector<std::string>> &vvstr,
                              std::queue<std::string> &qops);
-    bool _run_cmds(std::vector<std::vector<std::string>> &args,
+    void _run_cmds(std::vector<std::vector<std::string>> &args,
                    std::queue<std::string> &ops);
 
     void _deallocate_all(char **arr, std::size_t size);

@@ -15,11 +15,6 @@
 // @param dest - output file stream
 void compress(FILE *src, FILE *dest);
 
-// compress ascii 0 and 1 text file
-// @param src - input file stream
-// @param dest - output file stream
-void *compress(void *args);
-
 // decompress a compressed file of 0/1
 // @param src - input file stream
 // @param dest - output file stream
@@ -49,28 +44,6 @@ void compress(FILE *src, FILE *dest) {
             count = 0;
         }
     }
-}
-
-void *compress(void *args) {
-    FILE **files = (FILE **)args;
-    FILE *src = files[0], *dest = files[1];
-
-    int chr,         // character to get from src
-        count = 0,   // count the number of same characters
-        limit = 16,  // limit for compression
-        peek = 0;    // next character
-
-    while((chr = fgetc(src)) != EOF) {
-        ++count;            // count number of characters read
-        peek = fgetc(src);  // peek at next char
-        ungetc(peek, src);  // return peek character
-
-        if(chr != peek) {  // if peek char is diff from current, write
-            write_compression(dest, chr, count, limit);
-            count = 0;
-        }
-    }
-    pthread_exit(nullptr);
 }
 
 void write_compression(FILE *dest, char c, int count, int limit) {

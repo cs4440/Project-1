@@ -31,20 +31,20 @@ void merge(std::vector<std::string>& files, char* output);
 
 int main(int argc, char* argv[]) {
     char default_src[] = "res/sample.txt",
-         default_dest[] = "res/parcompress.txt";
+         default_dest[] = "res/par_fork_compress.txt";
     char *src = default_src, *dest = default_dest;
-    unsigned n = 3;
-    pid_t pid = -1;
-    struct stat buffer;
-    std::vector<std::string> split_files, compressed_files;
+    unsigned n = 3;                        // default n split
+    struct stat buffer;                    // directory status info
+    std::vector<std::string> split_files,  // split file names
+        compressed_files;                  // names for split compress result
+    pid_t pid = -1;                        // process id
 
     // check for argument overrides
     if(argc > 1) src = argv[1];
     if(argc > 2) dest = argv[2];
     if(argc > 3) n = atoi(argv[3]);
 
-    // check if directory tmp/ exists
-    // stat() returns 0 if exists
+    // check if directory tmp/ exists, stat() returns 0 if exists
     if(stat("tmp/", &buffer) != 0) mkdir("tmp/", 0700);
 
     // create temporary split file names to tmp/ dir

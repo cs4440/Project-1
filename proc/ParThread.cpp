@@ -1,18 +1,17 @@
 /*
- * Concurrency: calls compress() n times via pthreads
+ * Concurrency: calls compress() n times via threads
  *
  * DETAILS
  * -------
  * Splits file by n times. Calls compress() to work on each split file
- * via pthreads. Then merge all the compression results to final output.
+ * via std::thread. Then merge all the compression results to final output.
  */
-#include <pthread.h>                 // pthread, pthread_t
 #include <sys/stat.h>                // stat(), mkdir()
-#include <unistd.h>                  // ftruncate()
 #include <cassert>                   // assert()
 #include <cstdio>                    // fopen()
 #include <cstdlib>                   // atoi()
 #include <iostream>                  // stream
+#include <thread>                    // thread
 #include <vector>                    // vector
 #include "../include/compression.h"  // compress()
 
@@ -31,22 +30,21 @@ void merge(std::vector<std::string>& files, char* output);
 
 int main(int argc, char* argv[]) {
     char default_src[] = "res/sample.txt",
-         default_dest[] = "res/parcompress.txt";
+         default_dest[] = "res/par_thread_compress.txt";
     char *src = default_src, *dest = default_dest;
-    // FILE* files[2];      // array of FILE * for pthread_create
-    FILE **files = nullptr, **cur_files = nullptr;
-    unsigned n = 3;      // default n split
-    struct stat buffer;  // directory status info
-    pthread_t* tid;      // point to tid array
-    std::vector<std::string> split_files, compressed_files;
+    unsigned n = 3;                        // default n split
+    struct stat buffer;                    // directory status info
+    std::vector<std::string> split_files,  // split file names
+        compressed_files;                  // names for split compress result
+    std::vector<std::thread> threads;      // vector of threads
+    std::vector<FILE*> files;              // vector of files for src and dest
 
     // check for argument overrides
     if(argc > 1) src = argv[1];
     if(argc > 2) dest = argv[2];
     if(argc > 3) n = atoi(argv[3]);
 
-    // check if directory tmp/ exists
-    // stat() returns 0 if exists
+    // check if directory tmp/ exists, stat() returns 0 if exists
     if(stat("tmp/", &buffer) != 0) mkdir("tmp/", 0700);
 
     // create temporary split file names to tmp/ dir
@@ -59,31 +57,24 @@ int main(int argc, char* argv[]) {
 
     split_file(src, n, split_files);
 
-    std::cout << "Starting pthread concurrency compression of " << n
+    std::cout << "Starting std::thread concurrency compression of " << n
               << std::endl;
 
-    // create pthread_t array and FILE* array
-    tid = new pthread_t[n];
-    cur_files = files = new FILE*[2 * n];
-
-    // spawn threads to do compress
+    // spawn threads to do compress and push each thread to vector
     for(unsigned i = 0; i < n; ++i) {
-        cur_files[0] = fopen(split_files[i].c_str(), "rb");       // src
-        cur_files[1] = fopen(compressed_files[i].c_str(), "wb");  // dest
+        // open src and dest FILE* for compression
+        files.push_back(fopen(split_files[i].c_str(), "rb"));       // src
+        files.push_back(fopen(compressed_files[i].c_str(), "wb"));  // dest
 
-        pthread_create(&tid[i], nullptr, compress, cur_files);
-
-        cur_files += 2;  // calculate new files array address x2
+        // directly create thread via emplace_back
+        threads.emplace_back(compress, files[2 * i + 0], files[2 * i + 1]);
     }
-    for(unsigned i = 0; i < n; ++i) pthread_join(tid[i], nullptr);
-    for(unsigned i = 0; i < 2 * n; ++i) fclose(files[i]);
+    for(unsigned i = 0; i < threads.size(); ++i) threads[i].join();
+    for(unsigned i = 0; i < files.size(); ++i) fclose(files[i]);
 
     merge(compressed_files, dest);
 
     std::cout << "Concurrency compression complete" << std::endl;
-
-    delete[] files;
-    delete[] tid;
 
     return 0;
 }

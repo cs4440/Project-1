@@ -16,7 +16,8 @@ Realizing concurrency using Unix processes and threads
 - MyDecompress - Simple binary decompression program
 - ForkCompress - Fork child process to call MyCompress
 - PipeCompress - Pipe program where parent process passes source file for child process to compress file
-- ParFork - Concurrency program: split compression by n calls of MyCompress via fork()
+- ParFork - Concurrency program: split compression by n fork()'s of exec() to MyCompress program
 - MinShell - Minimal shell that accepts commands to call processes
 - MoreShell - More featured shell that accepts commands and arguments to call processes
-- DupShell - shell that uses dup2() to connect pipes between commands for operator |
+- DupShell - shell that uses dup2() to connect pipes between commands for operator | (can chain operators)
+- ParThread - Concurrency program: split compression by n pthreads of compress function

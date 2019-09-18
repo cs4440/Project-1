@@ -1,20 +1,20 @@
 /*
- * Concurrency: calls MyCompress n times to work on large file via fork()
+ * Concurrency: calls compress() n times via pthreads
  *
  * DETAILS
  * -------
- * Splits file by n times. Calls MyCompress to work on each split file
- * via fork(). Then merge all the compression results to final output.
+ * Splits file by n times. Calls compress() to work on each split file
+ * via pthreads. Then merge all the compression results to final output.
  */
-#include <sys/stat.h>   // stat(), mkdir()
-#include <sys/types.h>  // pid_t
-#include <sys/wait.h>   // wait()
-#include <unistd.h>     // exec(), fork()
-#include <cassert>      // assert()
-#include <cstdio>       // fopen()
-#include <cstdlib>      // atoi()
-#include <iostream>     // stream
-#include <vector>       // vector
+#include <pthread.h>                 // pthread, pthread_t
+#include <sys/stat.h>                // stat(), mkdir()
+#include <unistd.h>                  // ftruncate()
+#include <cassert>                   // assert()
+#include <cstdio>                    // fopen()
+#include <cstdlib>                   // atoi()
+#include <iostream>                  // stream
+#include <vector>                    // vector
+#include "../include/compression.h"  // compress()
 
 // splits a file by n times to files
 // precondition: files must have n output file names
@@ -24,7 +24,7 @@
 // return success state
 bool split_file(char* input, unsigned n, std::vector<std::string>& files);
 
-// merges files and fixes beginning/end of each files
+// merges files without fixing inconsistence truncations
 // @param files - a vector of n input file names
 // @param output - output file name
 void merge(std::vector<std::string>& files, char* output);
@@ -33,9 +33,11 @@ int main(int argc, char* argv[]) {
     char default_src[] = "res/sample.txt",
          default_dest[] = "res/parcompress.txt";
     char *src = default_src, *dest = default_dest;
-    unsigned n = 3;
-    pid_t pid = -1;
-    struct stat buffer;
+    // FILE* files[2];      // array of FILE * for pthread_create
+    FILE **files = nullptr, **cur_files = nullptr;
+    unsigned n = 3;      // default n split
+    struct stat buffer;  // directory status info
+    pthread_t* tid;      // point to tid array
     std::vector<std::string> split_files, compressed_files;
 
     // check for argument overrides
@@ -57,33 +59,38 @@ int main(int argc, char* argv[]) {
 
     split_file(src, n, split_files);
 
-    std::cout << "Starting fork() concurrency compression of " << n
+    std::cout << "Starting pthread concurrency compression of " << n
               << std::endl;
 
-    for(unsigned i = 0; i < n; ++i)
-        if((pid = fork()) == 0) {
-            execle("MyCompress", "MyCompress", split_files[i].c_str(),
-                   compressed_files[i].c_str(), nullptr, nullptr);
+    // create pthread_t array and FILE* array
+    tid = new pthread_t[n];
+    cur_files = files = new FILE*[2 * n];
 
-            // exec fails here
-            std::cerr << "exec() failed" << std::endl;
-            return 1;
-        } else if(pid < 0) {
-            std::cerr << "fork() failed" << std::endl;
-            return 1;
-        }
-    for(unsigned i = 0; i < n; ++i) wait(nullptr);
+    // spawn threads to do compress
+    for(unsigned i = 0; i < n; ++i) {
+        cur_files[0] = fopen(split_files[i].c_str(), "rb");       // src
+        cur_files[1] = fopen(compressed_files[i].c_str(), "wb");  // dest
+
+        pthread_create(&tid[i], nullptr, compress, cur_files);
+
+        cur_files += 2;  // calculate new files array address x2
+    }
+    for(unsigned i = 0; i < n; ++i) pthread_join(tid[i], nullptr);
+    for(unsigned i = 0; i < 2 * n; ++i) fclose(files[i]);
 
     merge(compressed_files, dest);
 
     std::cout << "Concurrency compression complete" << std::endl;
+
+    delete[] files;
+    delete[] tid;
 
     return 0;
 }
 
 bool split_file(char* input, unsigned n, std::vector<std::string>& files) {
     bool status = true;
-    int chr;
+    int chr, tell;
     long int file_size = 0, split_size = 0;
     FILE* src = nullptr;
 
@@ -103,7 +110,7 @@ bool split_file(char* input, unsigned n, std::vector<std::string>& files) {
             for(unsigned i = 0; i < n; ++i) {
                 // on last file, recalc split size from integer division loss
                 if(i == n - 1) {
-                    int tell = ftell(src);
+                    tell = ftell(src);
                     split_size = file_size - tell;
                     fseek(src, tell, SEEK_SET);
                 }

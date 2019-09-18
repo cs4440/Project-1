@@ -37,7 +37,9 @@ void Shell::run() {
                 std::cerr << e.what() << std::endl;
                 break;
             }
+
             args.clear();
+            while(!ops.empty()) ops.pop();
         }
     }
 }

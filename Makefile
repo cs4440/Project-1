@@ -2,6 +2,7 @@ CXX             := g++
 DEBUG_LEVEL     := -g
 EXTRA_CCFLAGS   := -Wall -Werror=return-type -Wextra -pedantic
 CXXFLAGS        := $(DEBUG_LEVEL) $(EXTRA_CCFLAGS)
+LDFLAGS         := -lm -lstdc++ -pthread
 
 INC             := include
 SRC             := src
@@ -9,7 +10,7 @@ PROC            := proc
 TEST            := tests
 SHEL            := state_machine.o token.o tokenizer.o parser.o shell.o
 ALL             := MyCompress MyDecompress ForkCompress PipeCompress ParFork\
-                   MinShell MoreShell DupShell
+                   MinShell MoreShell DupShell ParThread
 
 # $@ targt name
 # $< first prerequisite
@@ -67,6 +68,13 @@ DupShell: DupShell.o $(SHEL)
 	$(CXX) -o $@ $^
 
 DupShell.o: $(PROC)/DupShell.cpp
+	$(CXX) $(CXXFLAGS) -c $<
+
+ParThread: ParThread.o
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+ParThread.o: $(PROC)/ParThread.cpp\
+	$(INC)/compression.h
 	$(CXX) $(CXXFLAGS) -c $<
 
 test: test.o $(SHEL)

@@ -3,10 +3,13 @@
 #include <iostream>                  // stream
 #include <string>                    // string
 #include "../include/compression.h"  // compress()
+#include "../include/timer.h"        // Timer class
 
 int main(int argc, char *argv[]) {
+    bool report_timer = true;
     char default_src[] = "res/sample.txt", default_dest[] = "res/compress.txt";
     char *src = default_src, *dest = default_dest;
+    timer::ChronoTimer ct;
 
     // check for argument overrides
     if(argc > 1) src = argv[1];
@@ -20,9 +23,17 @@ int main(int argc, char *argv[]) {
     else {
         std::cout << "Compressing text: src(" << src << ") dest(" << dest << ")"
                   << std::endl;
+
+        ct.start();
         compress(fsrc, fdest);
+        ct.stop();
+
         std::cout << "Compression complete" << std::endl;
     }
+
+    if(report_timer)
+        std::cout << "Compression time: " << ct.seconds() << " seconds"
+                  << std::endl;
 
     if(fsrc) fclose(fsrc);
     if(fdest) fclose(fdest);

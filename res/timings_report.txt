@@ -1,0 +1,35 @@
+./MyCompress res/large_sample.txt res/large_compress.txt
+Compressing text: src(res/large_sample.txt) dest(res/large_compress.txt)
+Compression complete
+Compression time: 0.746757 seconds
+
+./ParFork res/large_sample.txt res/large_par_fork_compress.txt
+Starting fork() concurrency compression of 3
+Concurrency compression complete
+Compression time: 0.672773 seconds
+
+./ParThread res/large_sample.txt res/large_par_thread_compress.txt
+Starting std::thread concurrency compression of 3
+Concurrency compression complete
+Compression time: 0.286009 seconds
+
+./MyDecompress res/large_compress.txt res/large_decompress.txt 
+Decompressing text: src(res/large_compress.txt) dest(res/large_decompress.txt)
+Decompression complete
+
+./MyDecompress res/large_par_fork_compress.txt res/large_par_fork_decompress.txt
+Decompressing text: src(res/large_par_fork_compress.txt) dest(res/large_par_fork_decompress.txt)
+Decompression complete
+
+./MyDecompress res/large_par_thread_compress.txt res/large_par_thread_decompress.txt
+Decompressing text: src(res/large_par_thread_compress.txt) dest(res/large_par_thread_decompress.txt)
+Decompression complete
+
+./CompareFiles res/large_sample.txt res/large_decompress.txt 
+Files are same
+
+./CompareFiles res/large_sample.txt res/large_par_fork_decompress.txt
+Files are same
+
+./CompareFiles res/large_sample.txt res/large_par_thread_decompress.txt
+Files are same

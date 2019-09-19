@@ -24,7 +24,10 @@ int main(int argc, char *argv[]) {
     while((chr1 = fgetc(src)) != EOF) {
         chr2 = fgetc(target);
 
-        if(chr1 != chr2) is_same = false;
+        if(chr1 != chr2) {
+            is_same = false;
+            break;
+        }
     }
 
     if(is_same)

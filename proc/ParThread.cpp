@@ -9,30 +9,33 @@
 #include <sys/stat.h>                // stat(), mkdir()
 #include <cstdio>                    // fopen()
 #include <cstdlib>                   // atoi()
+#include <cstring>                   // strlen()
 #include <iostream>                  // stream
 #include <thread>                    // thread
 #include <vector>                    // vector
 #include "../include/compression.h"  // compress()
+#include "../include/timer.h"        // Timer class
 
 // merges files without fixing inconsistence truncations
-// @param files - a vector of n input file names
-// @param output - output file name
-void merge(std::vector<FILE*>& files, FILE* dest);
+// @param files - a vector of char strings
+// @param dest - destination file
+void merge(std::vector<char*>& files, FILE* dest);
 
 int main(int argc, char* argv[]) {
+    bool report_timer = true;
     char default_src[] = "res/sample.txt",
          default_dest[] = "res/par_thread_compress.txt";
     char *src = default_src, *dest = default_dest;
+    char* src_arr = nullptr;           // array to hold source content
     unsigned n = 3;                    // default n split
     struct stat buffer;                // directory status info
     FILE *fsrc = nullptr,              // source FILE*
         *fdest = nullptr;              // dest FILE*
-    int chr;                           // file character
     long int file_size = 0,            // total file size
         split_size = 0;                // split file size
     std::vector<std::thread> threads;  // vector of threads
-    std::vector<FILE*> split_files,    // vector of split files
-        compressed_files;              // vector of compressed files
+    std::vector<char*> splits;         // resultant array for compression
+    timer::ChronoTimer ct;             // chrono timer
 
     // check for argument overrides
     if(argc > 1) src = argv[1];
@@ -69,52 +72,47 @@ int main(int argc, char* argv[]) {
     std::cout << "Starting std::thread concurrency compression of " << n
               << std::endl;
 
+    // start timer
+    ct.start();
+
+    // read file to array
+    src_arr = new char[file_size + 1];
+    read_to_arr(fsrc, src_arr);
+
     for(unsigned i = 0; i < n; ++i) {
-        std::string split = "tmp/" + std::to_string(i) + ".split",
-                    post_split = split + ".cmp";
+        // on last file, recalc split size from integer division loss
+        if(i == n - 1) split_size = (file_size - (split_size * i));
 
-        // create split files and compressed files to vector
-        split_files.push_back(fopen(split.c_str(), "w+b"));
-        compressed_files.push_back(fopen(post_split.c_str(), "w+b"));
-
-        // write src to split files
-        for(long int j = 0; j < split_size; ++j)
-            if((chr = fgetc(fsrc)) != EOF) fputc(chr, split_files[i]);
-
-        // on last piece, write remaining bytes beyond integer division
-        if(i == n - 1)
-            while((chr = fgetc(fsrc)) != EOF) fputc(chr, split_files[i]);
-
-        // rewind split files before passing to compress function
-        rewind(split_files[i]);
+        splits.emplace_back(new char[split_size + 1]);
 
         // start a thread to compress split files
-        threads.emplace_back(compress, split_files[i], compressed_files[i]);
+        threads.emplace_back(compress_arr, src_arr + (split_size * i),
+                             splits[i], split_size);
     }
-    for(unsigned i = 0; i < threads.size(); ++i) threads[i].join();
+    for(std::size_t i = 0; i < threads.size(); ++i) threads[i].join();
 
     // open output file and merge all compressed_files to output
     fdest = fopen(dest, "w+b");
-    merge(compressed_files, fdest);
+    merge(splits, fdest);
 
-    // close all files
-    for(unsigned i = 0; i < split_files.size(); ++i) {
-        fclose(split_files[i]);
-        fclose(compressed_files[i]);
-    }
+    // stop timer
+    ct.stop();
+
+    for(std::size_t i = 0; i < splits.size(); ++i) delete[] splits[i];
+    delete[] src_arr;
     fclose(fdest);
     fclose(fsrc);
 
     std::cout << "Concurrency compression complete" << std::endl;
 
+    if(report_timer)
+        std::cout << "Compression time: " << ct.seconds() << " seconds"
+                  << std::endl;
+
     return 0;
 }
 
-void merge(std::vector<FILE*>& files, FILE* dest) {
-    int chr;
-
-    for(std::size_t i = 0; i < files.size(); ++i) {
-        rewind(files[i]);
-        while((chr = fgetc(files[i])) != EOF) fputc(chr, dest);
-    }
+void merge(std::vector<char*>& files, FILE* dest) {
+    for(std::size_t i = 0; i < files.size(); ++i)
+        fwrite(files[i], sizeof(char), strlen(files[i]), dest);
 }

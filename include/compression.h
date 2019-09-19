@@ -8,12 +8,20 @@
 #define COMPRESSION_H
 
 #include <stdio.h>  // FILE*
+#include <cstring>  // memcpy
 #include <string>   // string
+
+std::size_t read_to_arr(FILE *src, char *arr);
 
 // compress ascii 0 and 1 text file
 // @param src - input file stream
 // @param dest - output file stream
 void compress(FILE *src, FILE *dest);
+
+// compress ascii 0 and 1 text file and output to array
+// @param src - source array
+// @param dest - destination array
+std::size_t compress_arr(char *src, char *dest, std::size_t bytes);
 
 // decompress a compressed file of 0/1
 // @param src - input file stream
@@ -27,6 +35,25 @@ void decompress(FILE *src, FILE *dest);
 // @param limit - integer limit to switch to compression symbol; otherwise
 //                just write n number of bits to file
 void write_compression(FILE *dest, char c, int count, int limit);
+
+// write n number of bits and compress if over limit to array
+// @param dest - destination array to write
+// @param c - character to write
+// @param size - number of characers to write
+// @param limit - integer limit to switch to compression symbol; otherwise
+//                just write n number of bits to file
+std::size_t write_compression_arr(char *dest, char c, int count, int limit);
+
+std::size_t read_to_arr(FILE *src, char *arr) {
+    int chr = 0, i = 0;
+
+    while((chr = fgetc(src)) != EOF) {
+        arr[i] = chr;
+        ++i;
+    }
+    arr[i] = '\0';
+    return i;
+}
 
 void compress(FILE *src, FILE *dest) {
     int chr,         // character to get from src
@@ -46,6 +73,24 @@ void compress(FILE *src, FILE *dest) {
     }
 }
 
+std::size_t compress_arr(char *src, char *dest, std::size_t bytes) {
+    int count = 0,          // count the number of same characters
+        limit = 16;         // limit for compression
+    std::size_t index = 0;  // index of array
+
+    for(std::size_t i = 0; i < bytes; ++i) {
+        ++count;  // count number of characters read
+
+        // if peek char is diff from current, write
+        if(src[i] != src[i + 1] || i == bytes - 1) {
+            index += write_compression_arr(dest + index, src[i], count, limit);
+            count = 0;
+        }
+    }
+    dest[index] = '\0';
+    return index;
+}
+
 void write_compression(FILE *dest, char c, int count, int limit) {
     if(count < limit) {
         std::string str(count, c);
@@ -59,6 +104,24 @@ void write_compression(FILE *dest, char c, int count, int limit) {
         std::string str = (char)c + std::to_string(count) + (char)c;
         fputs(str.c_str(), dest);
     }
+}
+
+std::size_t write_compression_arr(char *dest, char c, int count, int limit) {
+    std::string str;
+
+    if(count < limit) {
+        str = std::string(count, c);
+        memcpy(dest, str.c_str(), str.size());
+    } else {
+        if(c == '0')
+            c = '-';
+        else if(c == '1')
+            c = '+';
+
+        str = (char)c + std::to_string(count) + (char)c;
+        memcpy(dest, str.c_str(), str.size());
+    }
+    return str.size();
 }
 
 void decompress(FILE *src, FILE *dest) {

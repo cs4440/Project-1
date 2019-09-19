@@ -12,29 +12,33 @@
 #include <unistd.h>                  // fork()
 #include <cstdio>                    // fopen()
 #include <cstdlib>                   // atoi()
+#include <cstring>                   // strlen()
 #include <iostream>                  // stream
 #include <vector>                    // vector
 #include "../include/compression.h"  // compress()
+#include "../include/timer.h"        // Timer class
 
 // merges files without fixing inconsistence truncations
-// @param files - a vector of n input file names
-// @param output - output file name
-void merge(std::vector<FILE*>& files, FILE* dest);
+// @param files - a vector of char strings
+// @param dest - destination file
+void merge(std::vector<char*>& files, FILE* dest);
 
 int main(int argc, char* argv[]) {
+    bool report_timer = true;
     char default_src[] = "res/sample.txt",
          default_dest[] = "res/par_fork_compress.txt";
     char *src = default_src, *dest = default_dest;
-    unsigned n = 3;                  // default n split
-    struct stat buffer;              // directory status info
-    FILE *fsrc = nullptr,            // source FILE*
-        *fdest = nullptr;            // dest FILE*
-    int chr;                         // file character
-    long int file_size = 0,          // total file size
-        split_size = 0;              // split file size
-    std::vector<FILE*> split_files,  // vector of split files
-        compressed_files;            // vector of compressed files
-    pid_t pid = -1;                  // process id
+    char* src_arr = nullptr;               // array to hold source content
+    unsigned n = 3;                        // default n split
+    struct stat buffer;                    // directory status info
+    FILE *fsrc = nullptr,                  // source FILE*
+        *fdest = nullptr;                  // dest FILE*
+    long int file_size = 0,                // total file size
+        split_size = 0;                    // split file size
+    std::vector<char*> splits;             // resultant array for compression
+    int *fd = nullptr, *cur_fd = nullptr;  // file descriptors for pipe()
+    pid_t pid = -1;                        // process id for fork()
+    timer::ChronoTimer ct;                 // chrono timer
 
     // check for argument overrides
     if(argc > 1) src = argv[1];
@@ -68,66 +72,82 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::cout << "Starting std::thread concurrency compression of " << n
+    std::cout << "Starting fork() concurrency compression of " << n
               << std::endl;
 
+    // start timer
+    ct.start();
+
+    // copy file to array
+    src_arr = new char[file_size + 1];
+    read_to_arr(fsrc, src_arr);
+
+    // create file descriptors for n forks
+    fd = new int[2 * n];
+
     for(unsigned i = 0; i < n; ++i) {
-        std::string split = "tmp/" + std::to_string(i) + ".split",
-                    post_split = split + ".cmp";
+        // on last file, recalc split size from integer division loss
+        if(i == n - 1) split_size = (file_size - (split_size * i));
 
-        // create split files and compressed files to vector
-        split_files.push_back(fopen(split.c_str(), "w+b"));
-        compressed_files.push_back(fopen(post_split.c_str(), "w+b"));
+        splits.emplace_back(new char[split_size + 1]);
 
-        // write src to split files
-        for(long int j = 0; j < split_size; ++j)
-            if((chr = fgetc(fsrc)) != EOF) fputc(chr, split_files[i]);
-
-        // on last piece, write remaining bytes beyond integer division
-        if(i == n - 1)
-            while((chr = fgetc(fsrc)) != EOF) fputc(chr, split_files[i]);
-
-        // rewind split files before passing to compress function
-        rewind(split_files[i]);
+        // get current file descriptor
+        pipe(fd + 2 * i);
+        cur_fd = fd + (2 * i);
 
         // fork a process to compress split files
         if((pid = fork()) == 0) {
-            compress(split_files[i], compressed_files[i]);
+            memset(splits[i], 0, split_size);
+            compress_arr(src_arr + (split_size * i), splits[i], split_size);
 
-            // close all files
-            for(unsigned i = 0; i < split_files.size(); ++i) {
-                fclose(split_files[i]);
-                fclose(compressed_files[i]);
-            }
+            close(cur_fd[0]);
+            FILE* write_pipe = fdopen(cur_fd[1], "wb");
+            fwrite(splits[i], sizeof(char), split_size, write_pipe);
+            fclose(write_pipe);
+
+            // free allocation
+            for(std::size_t i = 0; i < splits.size(); ++i) delete[] splits[i];
+            delete[] fd;
+            delete[] src_arr;
             fclose(fsrc);
 
             return 0;
+        } else {
+            close(cur_fd[1]);
+            FILE* read_pipe = fdopen(cur_fd[0], "rb");
+
+            int chr = 0, index = 0;
+            while((chr = fgetc(read_pipe)) != EOF) splits[i][index++] = chr;
+            splits[i][index] = '\0';
+
+            fclose(read_pipe);
         }
     }
     for(unsigned i = 0; i < n; ++i) wait(nullptr);
 
     // open output file and merge all compressed_files to output
     fdest = fopen(dest, "w+b");
-    merge(compressed_files, fdest);
+    merge(splits, fdest);
 
-    // close all files
-    for(unsigned i = 0; i < split_files.size(); ++i) {
-        fclose(split_files[i]);
-        fclose(compressed_files[i]);
-    }
+    // stop timer
+    ct.stop();
+
+    delete[] fd;
+    for(std::size_t i = 0; i < splits.size(); ++i) delete[] splits[i];
+    delete[] src_arr;
     fclose(fdest);
     fclose(fsrc);
 
     std::cout << "Concurrency compression complete" << std::endl;
 
+    if(report_timer)
+        std::cout << "Compression time: " << ct.seconds() << " seconds"
+                  << std::endl;
+
     return 0;
 }
 
-void merge(std::vector<FILE*>& files, FILE* dest) {
-    int chr;
-
-    for(std::size_t i = 0; i < files.size(); ++i) {
-        rewind(files[i]);
-        while((chr = fgetc(files[i])) != EOF) fputc(chr, dest);
-    }
+void merge(std::vector<char*>& files, FILE* dest) {
+    for(std::size_t i = 0; i < files.size(); ++i)
+        fwrite(files[i], sizeof(char), strlen(files[i]), dest);
 }

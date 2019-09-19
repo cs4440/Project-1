@@ -10,7 +10,7 @@ PROC            := proc
 TEST            := tests
 SHEL            := state_machine.o token.o tokenizer.o parser.o shell.o
 ALL             := MyCompress MyDecompress ForkCompress PipeCompress ParFork\
-                   MinShell MoreShell DupShell ParThread
+                   MinShell MoreShell DupShell ParThread CompareFiles
 
 # $@ targt name
 # $< first prerequisite
@@ -75,6 +75,12 @@ ParThread: ParThread.o
 
 ParThread.o: $(PROC)/ParThread.cpp\
 	$(INC)/compression.h
+	$(CXX) $(CXXFLAGS) -c $<
+
+CompareFiles: CompareFiles.o
+	$(CXX) -o $@ $^
+
+CompareFiles.o: $(PROC)/CompareFiles.cpp
 	$(CXX) $(CXXFLAGS) -c $<
 
 test: test.o $(SHEL)

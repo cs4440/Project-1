@@ -23,7 +23,8 @@ MyCompress: MyCompress.o
 	$(CXX) -o $@ $^
 
 MyCompress.o: $(PROC)/MyCompress.cpp\
-	$(INC)/compression.h
+	$(INC)/compression.h\
+	$(INC)/timer.h
 	$(CXX) $(CXXFLAGS) -c $<
 
 MyDecompress: MyDecompress.o
@@ -49,7 +50,9 @@ PipeCompress.o: $(PROC)/PipeCompress.cpp\
 ParFork: ParFork.o
 	$(CXX) -o $@ $^
 
-ParFork.o: $(PROC)/ParFork.cpp
+ParFork.o: $(PROC)/ParFork.cpp\
+	$(INC)/compression.h\
+	$(INC)/timer.h
 	$(CXX) $(CXXFLAGS) -c $<
 
 MinShell: MinShell.o
@@ -74,7 +77,8 @@ ParThread: ParThread.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 ParThread.o: $(PROC)/ParThread.cpp\
-	$(INC)/compression.h
+	$(INC)/compression.h\
+	$(INC)/timer.h
 	$(CXX) $(CXXFLAGS) -c $<
 
 CompareFiles: CompareFiles.o

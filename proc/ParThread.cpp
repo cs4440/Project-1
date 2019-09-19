@@ -27,12 +27,13 @@ int main(int argc, char* argv[]) {
          default_dest[] = "res/par_thread_compress.txt";
     char *src = default_src, *dest = default_dest;
     char* src_arr = nullptr;           // array to hold source content
-    unsigned n = 3;                    // default n split
+    unsigned n = 6;                    // default n split
     struct stat buffer;                // directory status info
     FILE *fsrc = nullptr,              // source FILE*
         *fdest = nullptr;              // dest FILE*
     long int file_size = 0,            // total file size
-        split_size = 0;                // split file size
+        split_size = 0,                // split file size
+        read_index = 0;                // source array index
     std::vector<std::thread> threads;  // vector of threads
     std::vector<char*> splits;         // resultant array for compression
     timer::ChronoTimer ct;             // chrono timer
@@ -56,7 +57,7 @@ int main(int argc, char* argv[]) {
     // find total file size
     fseek(fsrc, 0, SEEK_END);
     file_size = ftell(fsrc);
-    split_size = file_size / n;
+    split_size = read_index = file_size / n;
     fseek(fsrc, 0, SEEK_SET);
 
     if(!file_size) {
@@ -86,8 +87,13 @@ int main(int argc, char* argv[]) {
         splits.emplace_back(new char[split_size + 1]);
 
         // start a thread to compress split files
-        threads.emplace_back(compress_arr, src_arr + (split_size * i),
-                             splits[i], split_size);
+        try {
+            threads.emplace_back(compress_arr, src_arr + (read_index * i),
+                                 splits[i], split_size);
+        } catch(const std::exception& e) {
+            std::cerr << "Thread exception: " << e.what() << std::endl;
+            break;
+        }
     }
     for(std::size_t i = 0; i < threads.size(); ++i) threads[i].join();
 

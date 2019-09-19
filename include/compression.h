@@ -11,6 +11,11 @@
 #include <cstring>  // memcpy
 #include <string>   // string
 
+// read file to array with nul terminate attached
+// user must ensure array is large enough
+// @param src - source file
+// @param arr - array to hold contents
+// return bytes written to array like a cstring strlen
 std::size_t read_to_arr(FILE *src, char *arr);
 
 // compress ascii 0 and 1 text file
@@ -18,9 +23,10 @@ std::size_t read_to_arr(FILE *src, char *arr);
 // @param dest - output file stream
 void compress(FILE *src, FILE *dest);
 
-// compress ascii 0 and 1 text file and output to array
+// compress ascii 0 and 1 text file and output to array, with nul terminate
 // @param src - source array
 // @param dest - destination array
+// return bytes written to array like a cstring strlen
 std::size_t compress_arr(char *src, char *dest, std::size_t bytes);
 
 // decompress a compressed file of 0/1
@@ -36,22 +42,21 @@ void decompress(FILE *src, FILE *dest);
 //                just write n number of bits to file
 void write_compression(FILE *dest, char c, int count, int limit);
 
-// write n number of bits and compress if over limit to array
+// write n number of bits and compress if over limit to array w/o nul terminate
 // @param dest - destination array to write
 // @param c - character to write
 // @param size - number of characers to write
 // @param limit - integer limit to switch to compression symbol; otherwise
 //                just write n number of bits to file
+// return bytes written to array like a cstring strlen
 std::size_t write_compression_arr(char *dest, char c, int count, int limit);
 
 std::size_t read_to_arr(FILE *src, char *arr) {
     int chr = 0, i = 0;
 
-    while((chr = fgetc(src)) != EOF) {
-        arr[i] = chr;
-        ++i;
-    }
+    while((chr = fgetc(src)) != EOF) arr[i++] = chr;
     arr[i] = '\0';
+
     return i;
 }
 

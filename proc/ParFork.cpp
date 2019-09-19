@@ -60,6 +60,11 @@ int main(int argc, char* argv[]) {
 
     if(!file_size) {
         std::cerr << "Input file is empty" << std::endl;
+        fclose(fsrc);
+        return 1;
+    } else if(file_size < n) {
+        std::cerr << "Input file is smaller than n concurrency" << std::endl;
+        fclose(fsrc);
         return 1;
     }
 

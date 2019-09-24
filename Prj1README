@@ -1,0 +1,48 @@
+Programs submitted
+------------------
+proc/MyCompress.cpp - compresses 0/1 bytes where length >= 16
+proc/MyDecompress.cpp - Decompression output from MyCompress program
+proc/ForkCompress.cpp - Calls fork and exec to execute MyCompress program
+proc/PipeCompress.cpp - Compression via pipe communication
+proc/ParFork.cpp - Concurrency compression via n forked processes
+proc/MinShell.cpp - Simple shell-like program to call other processes via exec
+proc/MoreShell.cpp - Shell program that can accept more commands
+proc/DupShell.cpp - Shell can that also chain pipe operators
+proc/ParThread.cpp - Concurrency compression via n threads
+proc/CompareFiles - Checks if two files are same to verify MyCompress/MyDecompress program results
+
+Sequential compression timings on large_sample.txt
+--------------------------------------------------
+MyCompress: 0.746757 seconds
+
+Timings for N forks/threads
+---------------------------
+Timings for 3 forks/threads on large_sample.txt
+ParFork: 0.647136 seconds
+ParThread: 0.276122 seconds
+
+Timings for 4 forks/threads on large_sample.txt
+ParFork: 0.646658 seconds
+ParThread: 0.239423 seconds
+
+Timings for 5 forks/threads on large_sample.txt
+ParFork: 0.652902 seconds
+ParThread: 0.222378 seconds
+
+Timings for 6 forks/threads on large_sample.txt
+ParFork: 0.655923 seconds
+ParThread: 0.223198 seconds
+
+Timings for 6 forks/threads on large_sample.txt
+ParFork: 0.652747 seconds
+ParThread: 0.218535 seconds
+
+Conclusion
+----------
+Timings are done via ChronoTimer, which uses std::chrono.
+Original MyCompress takes 0.746757 seconds.
+ParFork timing averages ~0.65 seconds, is faster by 10-13%.
+ParThreads timing averages ~0.25 seconds.
+Of course, slow is sequential compression.
+Forks concurrency compression is only slightly faster because parent/child communications are done via pipes, which are quick slow.
+Threads concurrency is fastest because shared memory does not need IO interrupts, unlike pipes.

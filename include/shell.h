@@ -30,9 +30,9 @@ private:
     Parser _parser;
 
     void _parse_cmds_and_ops(const std::vector<Token> &tokens,
-                             std::vector<std::vector<std::string>> &vvstr,
+                             std::queue<std::vector<std::string>> &vvstr,
                              std::queue<std::string> &qops);
-    void _run_cmds(std::vector<std::vector<std::string>> &args,
+    void _run_cmds(std::queue<std::vector<std::string>> &args,
                    std::queue<std::string> &ops);
 
     void _deallocate_all(char **arr, std::size_t size);

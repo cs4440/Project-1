@@ -11,13 +11,6 @@
 #include <cstring>  // memcpy
 #include <string>   // string
 
-// read file to array with nul terminate attached
-// user must ensure array is large enough
-// @param src - source file
-// @param arr - array to hold contents
-// return bytes written to array like a cstring strlen
-std::size_t read_to_arr(FILE *src, char *arr);
-
 // compress ascii 0 and 1 text file
 // @param src - input file stream
 // @param dest - output file stream
@@ -50,15 +43,6 @@ void write_compression(FILE *dest, char c, int count, int limit);
 //                just write n number of bits to file
 // return bytes written to array like a cstring strlen
 std::size_t write_compression_arr(char *dest, char c, int count, int limit);
-
-std::size_t read_to_arr(FILE *src, char *arr) {
-    int chr = 0, i = 0;
-
-    while((chr = fgetc(src)) != EOF) arr[i++] = chr;
-    arr[i] = '\0';
-
-    return i;
-}
 
 void compress(FILE *src, FILE *dest) {
     int chr,         // character to get from src

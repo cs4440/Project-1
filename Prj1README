@@ -13,36 +13,40 @@ proc/CompareFiles - Checks if two files are same to verify MyCompress/MyDecompre
 
 Sequential compression timings on large_sample.txt
 --------------------------------------------------
-MyCompress: 0.746757 seconds
+MyCompress: 0.726875 seconds
 
 Timings for N forks/threads
 ---------------------------
 Timings for 3 forks/threads on large_sample.txt
-ParFork: 0.647136 seconds
-ParThread: 0.276122 seconds
+ParFork: 0.630542 seconds
+ParThread: 0.256864 seconds
 
 Timings for 4 forks/threads on large_sample.txt
-ParFork: 0.646658 seconds
-ParThread: 0.239423 seconds
+ParFork: 0.617348 seconds
+ParThread: 0.241368 seconds
 
 Timings for 5 forks/threads on large_sample.txt
-ParFork: 0.652902 seconds
-ParThread: 0.222378 seconds
+ParFork: 0.609526 seconds
+ParThread: 0.200495 seconds
 
 Timings for 6 forks/threads on large_sample.txt
-ParFork: 0.655923 seconds
-ParThread: 0.223198 seconds
+ParFork: 0.614048 seconds
+ParThread: 0.199849 seconds
 
-Timings for 6 forks/threads on large_sample.txt
-ParFork: 0.652747 seconds
-ParThread: 0.218535 seconds
+Timings for 7 forks/threads on large_sample.txt
+ParFork: 0.617695 seconds
+ParThread: 0.188037 seconds
+
+Timings for 8 forks/threads on large_sample.txt
+ParFork: 0.610985 seconds
+ParThread: 0.178809 seconds
 
 Conclusion
 ----------
 Timings are done via ChronoTimer, which uses std::chrono.
-Original MyCompress takes 0.746757 seconds.
-ParFork timing averages ~0.65 seconds, is faster by 10-13%.
-ParThreads timing averages ~0.25 seconds.
+Original MyCompress takes 0.726875 seconds.
+ParFork timing averages ~0.62 seconds, is faster by 10-13%.
+ParThreads timing averages ~0.20 seconds, which is faster by 70%
 Of course, slow is sequential compression.
 Forks concurrency compression is only slightly faster because parent/child communications are done via pipes, which are quick slow.
 Threads concurrency is fastest because shared memory does not need IO interrupts, unlike pipes.

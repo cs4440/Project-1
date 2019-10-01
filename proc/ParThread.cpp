@@ -6,7 +6,6 @@
  * Splits file by n times. Calls compress() to work on each split file
  * via std::thread. Then merge all the compression results to final output.
  */
-#include <sys/stat.h>                // stat(), mkdir()
 #include <cstdio>                    // fopen()
 #include <cstdlib>                   // atoi()
 #include <cstring>                   // strlen()
@@ -28,23 +27,19 @@ int main(int argc, char* argv[]) {
     char *src = default_src, *dest = default_dest;
     char* src_arr = nullptr;           // array to hold source content
     unsigned n = 6;                    // default n split
-    struct stat buffer;                // directory status info
     FILE *fsrc = nullptr,              // source FILE*
         *fdest = nullptr;              // dest FILE*
     long int file_size = 0,            // total file size
-        split_size = 0,                // split file size
-        read_index = 0;                // source array index
+        split_size = 0;                // split file size
     std::vector<std::thread> threads;  // vector of threads
-    std::vector<char*> splits;         // resultant array for compression
+    std::vector<char*> src_splits,     // source array for compression
+        dest_splits;                   // destination array for compression
     timer::ChronoTimer ct;             // chrono timer
 
     // check for argument overrides
     if(argc > 1) src = argv[1];
     if(argc > 2) dest = argv[2];
     if(argc > 3) n = atoi(argv[3]);
-
-    // check if directory tmp/ exists, stat() returns 0 if exists
-    if(stat("tmp/", &buffer) != 0) mkdir("tmp/", 0700);
 
     // open source file
     fsrc = fopen(src, "rb");
@@ -57,7 +52,7 @@ int main(int argc, char* argv[]) {
     // find total file size
     fseek(fsrc, 0, SEEK_END);
     file_size = ftell(fsrc);
-    split_size = read_index = file_size / n;
+    split_size = file_size / n;
     fseek(fsrc, 0, SEEK_SET);
 
     if(!file_size) {
@@ -76,20 +71,19 @@ int main(int argc, char* argv[]) {
     // start timer
     ct.start();
 
-    // read file to array
-    src_arr = new char[file_size + 1];
-    read_to_arr(fsrc, src_arr);
-
     for(unsigned i = 0; i < n; ++i) {
         // on last file, recalc split size from integer division loss
         if(i == n - 1) split_size = (file_size - (split_size * i));
 
-        splits.emplace_back(new char[split_size + 1]);
+        src_splits.emplace_back(new char[split_size + 1]());
+        dest_splits.emplace_back(new char[split_size + 1]());
+
+        fread(src_splits[i], sizeof(char), split_size, fsrc);
 
         // start a thread to compress split files
         try {
-            threads.emplace_back(compress_arr, src_arr + (read_index * i),
-                                 splits[i], split_size);
+            threads.emplace_back(compress_arr, src_splits[i], dest_splits[i],
+                                 split_size);
         } catch(const std::exception& e) {
             std::cerr << "Thread exception: " << e.what() << std::endl;
             break;
@@ -98,13 +92,16 @@ int main(int argc, char* argv[]) {
     for(std::size_t i = 0; i < threads.size(); ++i) threads[i].join();
 
     // open output file and merge all compressed_files to output
-    fdest = fopen(dest, "w+b");
-    merge(splits, fdest);
+    fdest = fopen(dest, "wb");
+    merge(dest_splits, fdest);
 
     // stop timer
     ct.stop();
 
-    for(std::size_t i = 0; i < splits.size(); ++i) delete[] splits[i];
+    for(unsigned i = 0; i < n; ++i) {
+        delete[] src_splits[i];
+        delete[] dest_splits[i];
+    }
     delete[] src_arr;
     fclose(fdest);
     fclose(fsrc);

@@ -11,6 +11,137 @@ proc/DupShell.cpp - Shell can that also chain pipe operators
 proc/ParThread.cpp - Concurrency compression via n threads
 proc/CompareFiles - Checks if two files are same to verify MyCompress/MyDecompress program results
 
+
+Original sample.txt
+-------------------
+111111111110000101010101010101010101010101010101010101010101010101
+010101 1010101010000000000000000000000000000000000001
+0111111111111111111111111
+
+
+./MyCompress res/sample.txt res/compress.txt
+--------------------------------------------
+111111111110000101010101010101010101010101010101010101010101010101
+010101 101010101-36-1
+0+24+
+
+
+./MyDecompress res/compress.txt res/decompress.txt
+--------------------------------------------------
+111111111110000101010101010101010101010101010101010101010101010101
+010101 1010101010000000000000000000000000000000000001
+0111111111111111111111111
+
+
+./ForkCompress.txt res/sample.txt res/forkcompress.txt
+------------------------------------------------------
+111111111110000101010101010101010101010101010101010101010101010101
+010101 101010101-36-1
+0+24+
+
+
+./PipeCompress res/sample.txt res/pipecompress.txt
+--------------------------------------------------
+111111111110000101010101010101010101010101010101010101010101010101
+010101 101010101-36-1
+0+24+
+
+
+./ParFork res/sample.txt res/par_fork_compress.txt
+--------------------------------------------------
+111111111110000101010101010101010101010101010101010101010101010101
+010101 1010101010000000000000-23-1
+0+24+
+
+./MyDecompress res/par_fork_compress.txt res/fork.txt
+-----------------------------------------------------
+111111111110000101010101010101010101010101010101010101010101010101
+010101 1010101010000000000000000000000000000000000001
+0111111111111111111111111
+
+
+./ParThread res/sample.txt res/par_thread_compress.txt
+------------------------------------------------------
+111111111110000101010101010101010101010101010101010101010101010101
+010101 1010101010000000000000-23-1
+0+24+
+
+./MyDecompress res/par_thread_compress.txt res/thread.txt
+---------------------------------------------------------
+111111111110000101010101010101010101010101010101010101010101010101
+010101 1010101010000000000000000000000000000000000001
+0111111111111111111111111
+
+
+./MinShell
+----------
+# ls
+ backup         CompareFiles.o   DupShell.o     ForkCompress.o   Makefile   MinShell.o   MoreShell.o   MyCompress.o   MyDecompress.o   ParFork.o   ParThread     PipeCompress     pipe.cpp     proc             read.cpp    res       src               tests   tokenizer.o   write.cpp
+ CompareFiles   DupShell         ForkCompress   include          MinShell   MoreShell    MyCompress    MyDecompress   ParFork          parser.o    ParThread.o   PipeCompress.o   Prj1README  'Project 1.pdf'   README.md   shell.o   state_machine.o   tmp     token.o
+# exit
+
+
+./MoreShell
+-----------
+# ls -al
+total 4242
+drwxrwxrwx 1 root root   8192 Sep 30 19:31  .
+drwxrwxrwx 1 root root   4096 Sep 25 14:30  ..
+drwxrwxrwx 1 root root   4096 Sep 30 11:33  backup
+-rwxrwxrwx 1 root root     93 Jun 27 17:03  .clang-format
+-rwxrwxrwx 1 root root  33448 Sep 30 19:31  CompareFiles
+-rwxrwxrwx 1 root root  38784 Sep 30 19:31  CompareFiles.o
+-rwxrwxrwx 1 root root 553088 Sep 30 19:31  DupShell
+-rwxrwxrwx 1 root root 124392 Sep 30 19:31  DupShell.o
+-rwxrwxrwx 1 root root  65168 Sep 30 19:30  ForkCompress
+-rwxrwxrwx 1 root root  86936 Sep 30 19:30  ForkCompress.o
+drwxrwxrwx 1 root root   4096 Sep 30 19:27  .git
+-rwxrwxrwx 1 root root     52 Sep 11 21:53  .gitignore
+drwxrwxrwx 1 root root   4096 Sep 30 19:23  include
+-rwxrwxrwx 1 root root   2392 Sep 19 17:30  Makefile
+-rwxrwxrwx 1 root root  68560 Sep 30 19:31  MinShell
+-rwxrwxrwx 1 root root  96168 Sep 30 19:30  MinShell.o
+-rwxrwxrwx 1 root root 111848 Sep 30 19:31  MoreShell
+-rwxrwxrwx 1 root root 184272 Sep 30 19:31  MoreShell.o
+-rwxrwxrwx 1 root root  99024 Sep 30 19:30  MyCompress
+-rwxrwxrwx 1 root root 144960 Sep 30 19:30  MyCompress.o
+-rwxrwxrwx 1 root root  82424 Sep 30 19:30  MyDecompress
+-rwxrwxrwx 1 root root 110968 Sep 30 19:30  MyDecompress.o
+-rwxrwxrwx 1 root root 143168 Sep 30 19:30  ParFork
+-rwxrwxrwx 1 root root 226776 Sep 30 19:30  ParFork.o
+-rwxrwxrwx 1 root root 207512 Sep 30 19:31  parser.o
+-rwxrwxrwx 1 root root 244488 Sep 30 19:31  ParThread
+-rwxrwxrwx 1 root root 438008 Sep 30 19:31  ParThread.o
+-rwxrwxrwx 1 root root  82936 Sep 30 19:30  PipeCompress
+-rwxrwxrwx 1 root root 111816 Sep 30 19:30  PipeCompress.o
+-rwxrwxrwx 1 root root   1936 Sep 11 12:17  pipe.cpp
+-rwxrwxrwx 1 root root   2683 Sep 30 19:29  Prj1README
+drwxrwxrwx 1 root root   4096 Sep 19 12:10  proc
+-rwxrwxrwx 1 root root  29633 Aug 22 11:38 'Project 1.pdf'
+-rwxrwxrwx 1 root root    127 Sep 10 09:55  read.cpp
+-rwxrwxrwx 1 root root    961 Sep 18 11:22  README.md
+drwxrwxrwx 1 root root   4096 Sep 30 19:32  res
+-rwxrwxrwx 1 root root 600000 Sep 30 19:31  shell.o
+drwxrwxrwx 1 root root   4096 Sep 30 19:23  src
+-rwxrwxrwx 1 root root 130512 Sep 30 19:31  state_machine.o
+drwxrwxrwx 1 root root   4096 Sep 30 19:23  tests
+drwxrwxrwx 1 root root      0 Sep 18 23:20  tmp
+-rwxrwxrwx 1 root root 109408 Sep 30 19:31  tokenizer.o
+-rwxrwxrwx 1 root root 102824 Sep 30 19:31  token.o
+drwxrwxrwx 1 root root      0 Aug 21 22:21  .vscode
+-rwxrwxrwx 1 root root     79 Sep 10 09:21  write.cpp
+# exit
+
+
+./DupShell
+----------
+# ls -al | wc   
+     46     408    2390
+# ls -al | wc | wc
+      1       3      24
+# exit
+
+
 Sequential compression timings on large_sample.txt
 --------------------------------------------------
 MyCompress: 0.726875 seconds
@@ -40,6 +171,7 @@ ParThread: 0.188037 seconds
 Timings for 8 forks/threads on large_sample.txt
 ParFork: 0.610985 seconds
 ParThread: 0.178809 seconds
+
 
 Conclusion
 ----------

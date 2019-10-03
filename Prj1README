@@ -142,43 +142,71 @@ drwxrwxrwx 1 root root      0 Aug 21 22:21  .vscode
 # exit
 
 
-Sequential compression timings on large_sample.txt
+Sequential compression timings on large_sample.txt (25mb)
 --------------------------------------------------
-MyCompress: 0.726875 seconds
+MyCompress: 0.709962 seconds
 
 Timings for N forks/threads
 ---------------------------
 Timings for 3 forks/threads on large_sample.txt
-ParFork: 0.630542 seconds
+ParFork: 0.328027 seconds
 ParThread: 0.256864 seconds
 
 Timings for 4 forks/threads on large_sample.txt
-ParFork: 0.617348 seconds
+ParFork: 0.292271 seconds
 ParThread: 0.241368 seconds
 
 Timings for 5 forks/threads on large_sample.txt
-ParFork: 0.609526 seconds
+ParFork: 0.268169 seconds
 ParThread: 0.200495 seconds
 
 Timings for 6 forks/threads on large_sample.txt
-ParFork: 0.614048 seconds
+ParFork: 0.269746 seconds
 ParThread: 0.199849 seconds
 
 Timings for 7 forks/threads on large_sample.txt
-ParFork: 0.617695 seconds
+ParFork: 0.257829 seconds
 ParThread: 0.188037 seconds
 
 Timings for 8 forks/threads on large_sample.txt
-ParFork: 0.610985 seconds
+ParFork: 0.256847 seconds
 ParThread: 0.178809 seconds
+
+Timings for 9 forks/threads on large_sample.txt
+ParFork: 0.246591 seconds
+ParThread: 0.181604 seconds
+
+Timings for 10 forks/threads on large_sample.txt
+ParFork: 0.254824 seconds
+ParThread: 0.177769 seconds
+
+Timings for 11 forks/threads on large_sample.txt
+ParFork: 0.238774 seconds
+ParThread: 0.176665 seconds
+
+Timings for 12 forks/threads on large_sample.txt
+ParFork: 0.239155 seconds
+ParThread: 0.172033 seconds
+
+Timings for 13 forks/threads on large_sample.txt
+ParFork: 0.232589 seconds
+ParThread: 0.164983 seconds
+
+Timings for 14 forks/threads on large_sample.txt
+ParFork: 0.241312 seconds
+ParThread: 0.170232 seconds
+
+Timings for 15 forks/threads on large_sample.txt
+ParFork: 0.233629 seconds
+ParThread: 0.160324 seconds
 
 
 Conclusion
 ----------
 Timings are done via ChronoTimer, which uses std::chrono.
-Original MyCompress takes 0.726875 seconds.
-ParFork timing averages ~0.62 seconds, is faster by 10-13%.
-ParThreads timing averages ~0.20 seconds, which is faster by 70%
+Original MyCompress takes 0.709962 seconds.
+ParFork timing averages 0.32 to .24 seconds, is faster by 55-65%.
+ParThreads timing averages 0.25 to 0.16 seconds, which is faster by 65-75%
 Of course, slow is sequential compression.
 Forks concurrency compression is only slightly faster because parent/child communications are done via pipes, which are quick slow.
 Threads concurrency is fastest because shared memory does not need IO interrupts, unlike pipes.

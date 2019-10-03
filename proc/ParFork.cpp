@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
     std::vector<char*> src_splits,         // source array for compression
         dest_splits;                       // destination array for compression
     int *fd = nullptr, *cur_fd = nullptr;  // file descriptors for pipe()
-    pid_t pid = -1;                        // process id for fork()
+    pid_t* pid = nullptr;                  // process id for fork()
     timer::ChronoTimer ct;                 // chrono timer
 
     // check for argument overrides
@@ -76,6 +76,7 @@ int main(int argc, char* argv[]) {
 
     // create file descriptors for n forks
     fd = new int[2 * n];
+    pid = new pid_t[n];
 
     for(unsigned i = 0; i < n; ++i) {
         // on last file, recalc split size from integer division loss
@@ -91,9 +92,9 @@ int main(int argc, char* argv[]) {
         cur_fd = fd + (2 * i);
 
         // fork a process to compress split files
-        pid = fork();
+        pid[i] = fork();
 
-        if(pid < 0) {
+        if(pid[i] < 0) {
             std::cerr << "fork() failed" << std::endl;
 
             // free allocation
@@ -102,11 +103,12 @@ int main(int argc, char* argv[]) {
                 delete[] dest_splits[i];
             }
             delete[] fd;
+            delete[] pid;
             delete[] src_arr;
             fclose(fsrc);
 
             return 1;
-        } else if(pid == 0) {
+        } else if(pid[i] == 0) {
             compress_arr(src_splits[i], dest_splits[i], split_size);
 
             close(cur_fd[0]);
@@ -120,23 +122,29 @@ int main(int argc, char* argv[]) {
                 delete[] dest_splits[i];
             }
             delete[] fd;
+            delete[] pid;
             delete[] src_arr;
             fclose(fsrc);
 
             return 0;
-        } else {
+        } else
             close(cur_fd[1]);
-            FILE* read_pipe = fdopen(cur_fd[0], "rb");
-
-            int chr = 0, index = 0;
-            while((chr = fgetc(read_pipe)) != EOF)
-                dest_splits[i][index++] = chr;
-            dest_splits[i][index] = '\0';
-
-            fclose(read_pipe);
-        }
     }
-    for(unsigned i = 0; i < n; ++i) wait(nullptr);
+
+    // get results from child processes
+    for(unsigned i = 0; i < n; ++i) {
+        FILE* read_pipe = fdopen((fd + (2 * i))[0], "rb");
+
+        int chr = 0, index = 0;
+        while((chr = fgetc(read_pipe)) != EOF) dest_splits[i][index++] = chr;
+        dest_splits[i][index] = '\0';
+
+        fclose(read_pipe);
+    }
+
+    // wait for all processes to finish
+    while(wait(nullptr) > 0) {
+    }
 
     // open output file and merge all compressed_files to output
     fdest = fopen(dest, "wb");
@@ -146,6 +154,7 @@ int main(int argc, char* argv[]) {
     ct.stop();
 
     delete[] fd;
+    delete[] pid;
     for(unsigned i = 0; i < n; ++i) {
         delete[] src_splits[i];
         delete[] dest_splits[i];

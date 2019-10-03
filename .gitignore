@@ -1,5 +1,6 @@
 **/*.gch
 **/*.o
 **/*.out
+**/tmp
 **/*.vscode
 *.clang-format

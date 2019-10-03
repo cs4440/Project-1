@@ -74,10 +74,11 @@ int main(int argc, char* argv[]) {
     // start timer
     ct.start();
 
-    // create file descriptors for n forks
+    // create file descriptor and pid arrays for n forks
     fd = new int[2 * n];
     pid = new pid_t[n];
 
+    // fork n processes
     for(unsigned i = 0; i < n; ++i) {
         // on last file, recalc split size from integer division loss
         if(i == n - 1) split_size = (file_size - (split_size * i));
@@ -131,9 +132,10 @@ int main(int argc, char* argv[]) {
             close(cur_fd[1]);
     }
 
-    // get results from child processes
+    // parent collect results from child processes
     for(unsigned i = 0; i < n; ++i) {
-        FILE* read_pipe = fdopen((fd + (2 * i))[0], "rb");
+        cur_fd = fd + (2 * i);
+        FILE* read_pipe = fdopen(cur_fd[0], "rb");
 
         int chr = 0, index = 0;
         while((chr = fgetc(read_pipe)) != EOF) dest_splits[i][index++] = chr;
@@ -142,11 +144,7 @@ int main(int argc, char* argv[]) {
         fclose(read_pipe);
     }
 
-    // wait for all processes to finish
-    while(wait(nullptr) > 0) {
-    }
-
-    // open output file and merge all compressed_files to output
+    // merge all compressed pieces to output file
     fdest = fopen(dest, "wb");
     merge(dest_splits, fdest);
 

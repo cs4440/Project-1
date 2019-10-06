@@ -151,6 +151,10 @@ int main(int argc, char* argv[]) {
     // stop timer
     ct.stop();
 
+    // wait for all children to prevent zombie states
+    while(wait(nullptr) > 0) {
+    }
+
     delete[] fd;
     delete[] pid;
     for(unsigned i = 0; i < n; ++i) {

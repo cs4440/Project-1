@@ -1,8 +1,9 @@
 CXX             := g++
 DEBUG_LEVEL     := -g
 EXTRA_CCFLAGS   := -Wall -Werror=return-type -Wextra -pedantic
-CXXFLAGS        := $(DEBUG_LEVEL) $(EXTRA_CCFLAGS)
-LDFLAGS         := -lm -lstdc++ -pthread
+OPT             := -O0
+CXXFLAGS        := $(DEBUG_LEVEL) $(EXTRA_CCFLAGS) $(OPT)
+LDLIBS          := -lm -lstdc++ -pthread
 
 INC             := include
 SRC             := src
@@ -74,7 +75,7 @@ DupShell.o: $(PROC)/DupShell.cpp
 	$(CXX) $(CXXFLAGS) -c $<
 
 ParThread: ParThread.o
-	$(CXX) -o $@ $^ $(LDFLAGS)
+	$(CXX) -o $@ $^ $(LDLIBS)
 
 ParThread.o: $(PROC)/ParThread.cpp\
 	$(INC)/compression.h\
